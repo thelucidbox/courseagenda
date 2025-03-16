@@ -44,6 +44,7 @@ const WEEKDAYS: { value: WeekdayType; label: string }[] = [
 const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarIntegrationProps) => {
   const [selectedProvider, setSelectedProvider] = useState<string>('google');
   const [showScheduleForm, setShowScheduleForm] = useState(false);
+  const [icsDownloading, setIcsDownloading] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -55,6 +56,18 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
 
   const { data: syllabus } = useQuery<Syllabus>({
     queryKey: [`/api/syllabi/${studyPlan?.syllabusId}`],
+    enabled: !!studyPlan?.syllabusId
+  });
+  
+  // Fetch study sessions for this study plan
+  const { data: studySessions } = useQuery<StudySession[]>({
+    queryKey: [`/api/study-plans/${studyPlanId}/study-sessions`],
+    enabled: !!studyPlanId
+  });
+  
+  // Fetch course events from the syllabus
+  const { data: courseEvents } = useQuery<CourseEvent[]>({
+    queryKey: [`/api/syllabi/${studyPlan?.syllabusId}/events`],
     enabled: !!studyPlan?.syllabusId
   });
 
@@ -159,6 +172,99 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
 
   const onSubmit = (data: CourseScheduleFormValues) => {
     integrationMutation.mutate(data);
+  };
+
+  // Convert study sessions and course events to calendar events
+  const convertToCalendarEvents = (): CalendarEvent[] => {
+    const calendarEvents: CalendarEvent[] = [];
+    
+    // Add study sessions
+    if (studySessions && studySessions.length > 0) {
+      studySessions.forEach(session => {
+        // Create a calendar event for each study session
+        const startTime = new Date(session.startTime);
+        const endTime = new Date(session.endTime);
+        
+        calendarEvents.push({
+          title: `Study Session: ${session.title || 'Study Time'}`,
+          description: session.description || `Study session for ${syllabus?.courseName || 'your course'}`,
+          startTime,
+          endTime,
+          colorId: '7' // Green color for study sessions
+        });
+      });
+    }
+    
+    // Add course events (assignments, exams, etc.)
+    if (courseEvents && courseEvents.length > 0) {
+      courseEvents.forEach(event => {
+        // Create calendar events for each course event
+        const startTime = new Date(event.dueDate);
+        startTime.setHours(23, 59, 0); // Set to end of day
+        const endTime = new Date(startTime);
+        endTime.setMinutes(endTime.getMinutes() + 30);
+        
+        let colorId = '1'; // Default blue
+        
+        // Assign different colors based on event type
+        if (event.eventType.toLowerCase().includes('exam')) {
+          colorId = '11'; // Red for exams
+        } else if (event.eventType.toLowerCase().includes('assignment')) {
+          colorId = '6'; // Orange for assignments
+        } else if (event.eventType.toLowerCase().includes('project')) {
+          colorId = '9'; // Purple for projects
+        }
+        
+        calendarEvents.push({
+          title: `${event.eventType}: ${event.title}`,
+          description: event.description || `${event.eventType} for ${syllabus?.courseName || 'your course'}`,
+          startTime,
+          endTime,
+          colorId
+        });
+      });
+    }
+    
+    return calendarEvents;
+  };
+  
+  // Handle ICS file download
+  const handleDownloadICS = () => {
+    try {
+      setIcsDownloading(true);
+      const events = convertToCalendarEvents();
+      
+      if (events.length === 0) {
+        toast({
+          title: "No Events Found",
+          description: "There are no study sessions or course events to export.",
+          variant: "destructive"
+        });
+        setIcsDownloading(false);
+        return;
+      }
+      
+      // Generate a filename based on the syllabus/course name
+      const fileName = `${syllabus?.courseName || 'course'}_calendar`.replace(/\s+/g, '_').toLowerCase();
+      
+      // Download the ICS file
+      downloadMultiEventICSFile(events, fileName);
+      
+      toast({
+        title: "Calendar File Downloaded",
+        description: "Your study plan has been exported as an ICS file.",
+        variant: "default"
+      });
+    } catch (error) {
+      toast({
+        title: "Download Failed",
+        description: "Could not generate calendar file. Please try again.",
+        variant: "destructive"
+      });
+      console.error("ICS download error:", error);
+    } finally {
+      setIcsDownloading(false);
+    }
   };
 
   const handleIntegrate = async () => {
@@ -395,10 +501,27 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
         )}
       </CardContent>
       
-      <CardFooter>
+      <CardFooter className="flex flex-col sm:flex-row gap-4">
+        <Button 
+          onClick={handleDownloadICS} 
+          className="w-full sm:w-1/2"
+          variant="outline"
+          disabled={icsDownloading}
+        >
+          {icsDownloading ? (
+            <span className="flex items-center">
+              <span className="animate-spin mr-2">⟳</span> Generating...
+            </span>
+          ) : (
+            <span className="flex items-center">
+              <Download className="mr-2 h-4 w-4" /> Download .ICS File
+            </span>
+          )}
+        </Button>
+        
         <Button 
           onClick={handleIntegrate} 
-          className="w-full"
+          className="w-full sm:w-1/2"
           disabled={integrationMutation.isPending}
         >
           {integrationMutation.isPending ? (
