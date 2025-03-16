@@ -6,12 +6,13 @@ export type PDFTextContent = {
   pageCount: number;
 };
 
-// Initialize PDF.js worker
+// Import the central PDF worker configuration
+import './pdf-worker-config';
+
+// No need to configure worker here as it's handled in pdf-worker-config.ts
 const initializePdfJS = async () => {
-  // Use the fake worker mode directly
-  pdfjs.GlobalWorkerOptions.workerSrc = '';
-  // This will display a warning but will work for most PDFs
-  console.log('Using PDF.js fake worker for processing');
+  // Initialization is already handled globally
+  // This function is kept for backward compatibility
 };
 
 // Extract text from PDF file

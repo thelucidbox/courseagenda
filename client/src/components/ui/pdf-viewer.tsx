@@ -8,9 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-// Set the pdf.js worker source
-// Using unpkg as a more reliable CDN for development
-pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+// Import the central PDF worker configuration
+import '../../lib/pdf-worker-config';
 
 interface PDFViewerProps {
   file: File | null;
