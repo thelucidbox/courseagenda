@@ -27,6 +27,9 @@ export const syllabi = pgTable("syllabi", {
   meetingDays: text("meeting_days").array(),
   meetingTimeStart: text("meeting_time_start"),
   meetingTimeEnd: text("meeting_time_end"),
+  // Calendar integration fields
+  calendarProvider: text("calendar_provider"),
+  calendarIntegrated: boolean("calendar_integrated").default(false),
 });
 
 export const courseEvents = pgTable("course_events", {

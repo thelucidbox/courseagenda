@@ -156,6 +156,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Handle calendar permissions for a syllabus
+  apiRouter.post('/syllabi/:id/calendar-permissions', async (req, res) => {
+    try {
+      const syllabusId = Number(req.params.id);
+      const { provider } = req.body;
+      
+      if (!provider) {
+        return res.status(400).json({ message: 'Calendar provider is required' });
+      }
+      
+      // Update syllabus with calendar provider info
+      // This would typically involve OAuth flow with the provider
+      // For now, we'll just update a flag in the syllabus data
+      const updatedSyllabus = await storage.updateSyllabusInfo(syllabusId, {
+        calendarProvider: provider,
+        calendarIntegrated: true
+      });
+      
+      if (!updatedSyllabus) {
+        return res.status(404).json({ message: 'Syllabus not found' });
+      }
+      
+      return res.status(200).json({ success: true, provider });
+    } catch (error) {
+      console.error('Error setting calendar permissions:', error);
+      return res.status(500).json({ message: 'Failed to set calendar permissions' });
+    }
+  });
+
   // Get course events for a syllabus
   apiRouter.get('/syllabi/:id/events', async (req, res) => {
     try {

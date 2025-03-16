@@ -6,6 +6,7 @@ import NotFound from "@/pages/not-found";
 import MainLayout from "@/components/layout/MainLayout";
 import Home from "@/pages/Home";
 import UploadSyllabus from "@/pages/UploadSyllabus";
+import CalendarPermissions from "@/pages/CalendarPermissions";
 import ExtractInfo from "@/pages/ExtractInfo";
 import CreateStudyPlan from "@/pages/CreateStudyPlan";
 import Courses from "@/pages/Courses";
@@ -16,6 +17,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/upload" component={UploadSyllabus} />
+      <Route path="/calendar-permissions/:id" component={CalendarPermissions} />
       <Route path="/extract/:id" component={ExtractInfo} />
       <Route path="/create-plan/:id" component={CreateStudyPlan} />
       <Route path="/courses" component={Courses} />

@@ -12,6 +12,7 @@ import { type Syllabus } from '@shared/schema';
 
 const steps = [
   { label: 'Upload Syllabus', status: 'current' as const },
+  { label: 'Calendar Permissions', status: 'upcoming' as const },
   { label: 'Extract Information', status: 'upcoming' as const },
   { label: 'Create Study Plan', status: 'upcoming' as const }
 ];
