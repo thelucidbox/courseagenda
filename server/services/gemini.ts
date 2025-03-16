@@ -55,6 +55,11 @@ interface ProcessedSyllabusInfo {
   events: InsertCourseEvent[]; // Processed events with Date objects
 }
 
+// Helper function for error cases - returns empty result with correct type
+function emptyResult(): ProcessedSyllabusInfo {
+  return { events: [] };
+}
+
 /**
  * Extract course information and events from a PDF file using Gemini Vision
  */
