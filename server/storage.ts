@@ -17,7 +17,10 @@ export interface IStorage {
   // User operations
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByGoogleId(googleId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined>;
 
   // Syllabus operations
   createSyllabus(syllabus: InsertSyllabus): Promise<Syllabus>;
@@ -128,17 +131,43 @@ export class MemStorage implements IStorage {
       (user) => user.username === username
     );
   }
+  
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.email === email
+    );
+  }
+  
+  async getUserByGoogleId(googleId: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.googleId === googleId
+    );
+  }
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.userIdCounter++;
     const user: User = { 
       ...insertUser, 
       id,
+      password: insertUser.password ?? null,
       displayName: insertUser.displayName ?? null,
-      initials: insertUser.initials ?? null 
+      initials: insertUser.initials ?? null,
+      email: insertUser.email ?? null,
+      googleId: insertUser.googleId ?? null,
+      profileImageUrl: insertUser.profileImageUrl ?? null,
+      authProvider: insertUser.authProvider ?? null
     };
     this.users.set(id, user);
     return user;
+  }
+  
+  async updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+    
+    const updatedUser = { ...user, ...updates };
+    this.users.set(id, updatedUser);
+    return updatedUser;
   }
 
   // Syllabus operations

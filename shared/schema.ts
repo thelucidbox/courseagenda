@@ -97,6 +97,10 @@ export const insertUserSchema = createInsertSchema(users).pick({
   password: true,
   displayName: true,
   initials: true,
+  email: true,
+  googleId: true,
+  profileImageUrl: true,
+  authProvider: true,
 });
 
 export const insertSyllabusSchema = createInsertSchema(syllabi).pick({
