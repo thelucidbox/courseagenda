@@ -1,4 +1,5 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useToast } from './use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
 interface User {
@@ -12,51 +13,67 @@ interface User {
 }
 
 export function useAuth() {
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  const { data: user, isLoading, error } = useQuery({
+  // Query to get the current authenticated user
+  const { 
+    data: user, 
+    isLoading,
+    error,
+    isError,
+    refetch
+  } = useQuery<User | null>({
     queryKey: ['/api/auth/user'],
-    queryFn: async () => {
-      try {
-        const response = await apiRequest('/api/auth/user', { method: 'GET' });
-        
-        if (!response) {
-          return null;
-        }
-        
-        return response as User;
-      } catch (error) {
-        // If we get a 401, the user is not authenticated
-        if (error instanceof Response && error.status === 401) {
-          return null;
-        }
-        
-        throw error;
-      }
-    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
     retry: false,
-    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  const login = () => {
-    // Redirect to Google OAuth flow
+  // Mutation for logging out
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest('/api/auth/logout', { method: 'POST' });
+    },
+    onSuccess: () => {
+      // Invalidate and refetch user data
+      queryClient.setQueryData(['/api/auth/user'], null);
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      
+      // Show success message
+      toast({
+        title: 'Logged out',
+        description: 'You have been successfully logged out',
+        variant: 'default',
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to log out. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  });
+
+  // Function to initiate Google login
+  const loginWithGoogle = () => {
     window.location.href = '/api/auth/google';
   };
 
+  // Function to log out
   const logout = () => {
-    // Clear local auth state
-    queryClient.setQueryData(['/api/auth/user'], null);
-    
-    // Redirect to logout endpoint
-    window.location.href = '/api/auth/logout';
+    logoutMutation.mutate();
   };
 
   return {
     user,
-    isLoading,
-    error,
     isAuthenticated: !!user,
-    login,
+    isLoading,
+    isError,
+    error,
+    loginWithGoogle,
     logout,
+    refetch,
+    isLoggingOut: logoutMutation.isPending
   };
 }

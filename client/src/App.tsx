@@ -11,6 +11,7 @@ import ExtractInfo from "@/pages/ExtractInfo";
 import CreateStudyPlan from "@/pages/CreateStudyPlan";
 import Courses from "@/pages/Courses";
 import CalendarIntegration from "@/pages/CalendarIntegration";
+import Profile from "@/pages/Profile";
 // Import directly using relative path instead of alias to fix the module resolution
 import CalendarPermissions from "./pages/CalendarPermissions";
 import CalendarSuccess from "./pages/CalendarSuccess";
@@ -34,6 +35,7 @@ function Router() {
       <Route path="/calendar-integration/:id" component={CalendarIntegration} />
       <Route path="/calendar/success" component={CalendarSuccess} />
       <Route path="/calendar/error" component={CalendarError} />
+      <Route path="/profile" component={Profile} />
       <Route component={NotFound} />
     </Switch>
   );
