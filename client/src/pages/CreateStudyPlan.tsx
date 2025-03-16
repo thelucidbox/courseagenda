@@ -33,8 +33,8 @@ const studyPlanSchema = z.object({
     from: z.date(),
     to: z.date(),
   }),
-  sessionsPerWeek: z.string().transform(val => parseInt(val)),
-  hoursPerSession: z.string().transform(val => parseInt(val)),
+  sessionsPerWeek: z.number().min(1).max(7),
+  hoursPerSession: z.number().min(1).max(8),
 });
 
 type StudyPlanValues = z.infer<typeof studyPlanSchema>;
@@ -107,8 +107,8 @@ const CreateStudyPlan = () => {
         from: new Date(),
         to: addDays(new Date(), 60),
       },
-      sessionsPerWeek: '3',
-      hoursPerSession: '2',
+      sessionsPerWeek: 3,
+      hoursPerSession: 2,
     },
   });
   
