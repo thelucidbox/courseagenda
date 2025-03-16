@@ -533,7 +533,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  apiRouter.get('/auth/google/callback', async (req, res) => {
+  apiRouter.get('/auth/google/calendar/callback', async (req, res) => {
     try {
       const { code } = req.query;
       

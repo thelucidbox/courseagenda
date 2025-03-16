@@ -1,10 +1,16 @@
 import { google } from 'googleapis';
 import { type OAuthToken } from '@shared/schema';
 
+// Get the Replit domain
+const replitDomain = process.env.REPLIT_DOMAINS ? process.env.REPLIT_DOMAINS.split(',')[0] : null;
+const REDIRECT_URI = process.env.REDIRECT_URI || 
+                    (replitDomain ? `https://${replitDomain}/api/auth/google/calendar/callback` : 
+                     'http://localhost:5000/api/auth/google/calendar/callback');
+
 const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_OAUTH_CLIENT_ID,
   process.env.GOOGLE_OAUTH_CLIENT_SECRET,
-  `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}/api/auth/google/callback`
+  REDIRECT_URI
 );
 
 export const GOOGLE_CALENDAR_SCOPES = [
