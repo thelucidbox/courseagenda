@@ -74,11 +74,23 @@ const PDFViewer = ({ file, onTextExtracted, onProcessingError }: PDFViewerProps)
   async function extractTextFromPDF(file: File): Promise<string> {
     try {
       console.log('Starting primary PDF extraction for file:', file.name, 'Size:', file.size);
+      
+      // Check if the PDF.js worker is properly configured
+      if (!pdfjs.GlobalWorkerOptions.workerSrc) {
+        console.log('Worker source is empty, setting to CDN URL');
+        pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+      }
+      
+      console.log('Using PDF.js worker source:', pdfjs.GlobalWorkerOptions.workerSrc);
+      
       const arrayBuffer = await file.arrayBuffer();
       console.log('File converted to ArrayBuffer, size:', arrayBuffer.byteLength);
       
       console.log('Loading PDF document...');
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
+      console.log('PDF loading task created');
+      
+      const pdf = await loadingTask.promise;
       console.log('PDF loaded successfully. Number of pages:', pdf.numPages);
       
       let fullText = '';
@@ -86,7 +98,10 @@ const PDFViewer = ({ file, onTextExtracted, onProcessingError }: PDFViewerProps)
       for (let i = 1; i <= pdf.numPages; i++) {
         console.log(`Processing page ${i}/${pdf.numPages}...`);
         const page = await pdf.getPage(i);
+        console.log(`Got page ${i}`);
+        
         const textContent = await page.getTextContent();
+        console.log(`Got text content for page ${i}`);
         
         // Use any to bypass type checking for library incompatibilities
         const items = textContent.items as any[];
@@ -133,7 +148,17 @@ const PDFViewer = ({ file, onTextExtracted, onProcessingError }: PDFViewerProps)
             
             // Use basic PDF.js without advanced features
             console.log('Loading PDF with fallback method...');
-            pdfjsLib.getDocument(typedArray).promise.then(pdf => {
+            
+            // Make sure we're using the properly configured PDF.js instance
+            if (!pdfjs.GlobalWorkerOptions.workerSrc) {
+              console.log('Worker source is empty in fallback mode, setting to CDN URL');
+              pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+            }
+            
+            console.log('Using PDF.js worker source for fallback:', pdfjs.GlobalWorkerOptions.workerSrc);
+            
+            // Use the properly configured pdfjs instance
+            pdfjs.getDocument(typedArray).promise.then(pdf => {
               console.log('PDF loaded successfully in fallback mode. Number of pages:', pdf.numPages);
               let textPromises = [];
               
