@@ -12,9 +12,8 @@ import { type Syllabus } from '@shared/schema';
 
 const steps = [
   { label: 'Upload Syllabus', status: 'current' as const },
-  { label: 'Calendar Permissions', status: 'upcoming' as const },
-  { label: 'Extract Information', status: 'upcoming' as const },
-  { label: 'Create Study Plan', status: 'upcoming' as const }
+  { label: 'Create Study Plan', status: 'upcoming' as const },
+  { label: 'Calendar Integration', status: 'upcoming' as const }
 ];
 
 const UploadSyllabus = () => {
@@ -117,13 +116,8 @@ const UploadSyllabus = () => {
                 <PDFViewer file={selectedFile} onTextExtracted={() => {}} />
                 <div className="absolute top-4 right-4 bg-white/90 p-3 rounded-md shadow-md">
                   <div className="flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 312 100" className="h-5 mr-2">
-                      <path d="M60.4 50c0-8.4-4.6-15.9-11.5-19.9L30.2 77.8c7 3.9 15.5 3.8 22.3-.3 4.8-2.9 7.9-8.3 7.9-14.3V50z" fill="#FF4A4A"/>
-                      <path d="M18.7 50v13.2c0 6 3.1 11.4 7.9 14.3l18.7-47.6C38.1 26 30.3 26 23.4 29.8c-3 1.9-4.7 5.3-4.7 8.7V50z" fill="#FFAD47"/>
-                      <path d="M18.7 38.5c0-3.4 1.8-6.8 4.7-8.7l18.7 47.6c7.1-4.2 11.6-11.7 11.6-20.1v-7.5L30.2 22.1c-7-3.9-15.5-3.8-22.3.3-4.8 2.9-7.9 8.3-7.9 14.3V50h18.7V38.5z" fill="#0066D9"/>
-                      <path d="M11.5 50H0v11.5c0 6 3.1 11.4 7.9 14.3 4.7 2.8 10.3 3.1 15.1.9l-11.5-26.7z" fill="#00ACF5"/>
-                    </svg>
-                    <span className="text-xs font-medium">Gemini Vision Processing</span>
+                    <div className="h-4 w-4 mr-2 rounded-full border-2 border-primary border-t-transparent animate-spin"></div>
+                    <span className="text-xs font-medium">Processing PDF...</span>
                   </div>
                 </div>
               </div>
@@ -186,8 +180,8 @@ const UploadSyllabus = () => {
                   2
                 </div>
                 <div>
-                  <h4 className="font-medium text-sm">AI analyzes your syllabus</h4>
-                  <p className="text-sm text-gray-500">Google's Gemini Vision AI directly processes your PDF to extract key information with high accuracy.</p>
+                  <h4 className="font-medium text-sm">Automatic analysis and processing</h4>
+                  <p className="text-sm text-gray-500">Your PDF is automatically analyzed to extract course information, deadlines, and assignments.</p>
                 </div>
               </div>
               
@@ -221,7 +215,7 @@ const UploadSyllabus = () => {
                 </li>
                 <li className="flex items-start space-x-2">
                   <CheckIcon className="text-primary mt-0.5 h-4 w-4" />
-                  <span>Our AI can process complex formats including tables and schedules</span>
+                  <span>Complex formats including tables and schedules are supported</span>
                 </li>
                 <li className="flex items-start space-x-2">
                   <CheckIcon className="text-primary mt-0.5 h-4 w-4" />
