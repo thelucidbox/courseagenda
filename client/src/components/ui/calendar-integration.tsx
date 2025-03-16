@@ -53,6 +53,7 @@ const reminderOptions = [
   { value: "1440", label: "1 day before" },
   { value: "2880", label: "2 days before" },
   { value: "10080", label: "1 week before" },
+  { value: "20160", label: "2 weeks before" },
 ];
 
 const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarIntegrationProps) => {
@@ -208,7 +209,8 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
           description: session.description || `Study session for ${syllabus?.courseName || 'your course'}`,
           startTime,
           endTime,
-          colorId: '7' // Green color for study sessions
+          colorId: '7', // Green color for study sessions
+          reminderMinutes: parseInt(studySessionReminder)
         });
       });
     }
@@ -223,14 +225,19 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
         endTime.setMinutes(endTime.getMinutes() + 30);
         
         let colorId = '1'; // Default blue
+        let reminderSetting = parseInt(reminderTime); // Default reminder time
         
-        // Assign different colors based on event type
-        if (event.eventType.toLowerCase().includes('exam')) {
+        // Assign different colors and reminder settings based on event type
+        const eventTypeLower = event.eventType.toLowerCase();
+        if (eventTypeLower.includes('exam') || eventTypeLower.includes('quiz') || eventTypeLower.includes('test')) {
           colorId = '11'; // Red for exams
-        } else if (event.eventType.toLowerCase().includes('assignment')) {
+          reminderSetting = parseInt(examReminder);
+        } else if (eventTypeLower.includes('assignment') || eventTypeLower.includes('homework')) {
           colorId = '6'; // Orange for assignments
-        } else if (event.eventType.toLowerCase().includes('project')) {
+          reminderSetting = parseInt(assignmentReminder);
+        } else if (eventTypeLower.includes('project')) {
           colorId = '9'; // Purple for projects
+          reminderSetting = parseInt(assignmentReminder);
         }
         
         calendarEvents.push({
@@ -238,7 +245,8 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
           description: event.description || `${event.eventType} for ${syllabus?.courseName || 'your course'}`,
           startTime,
           endTime,
-          colorId
+          colorId,
+          reminderMinutes: reminderSetting
         });
       });
     }
@@ -325,9 +333,118 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
             </div>
           </div>
         </div>
+        
+        <div>
+          <h3 className="text-lg font-medium mb-4">1. Set Reminder Preferences</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div className="border rounded-lg p-4 space-y-4">
+              <div className="flex items-center gap-2">
+                <Bell className="h-5 w-5 text-primary" />
+                <h4 className="font-medium">Study Sessions</h4>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="studySessionReminder">Remind me</Label>
+                <Select
+                  value={studySessionReminder}
+                  onValueChange={setStudySessionReminder}
+                >
+                  <SelectTrigger id="studySessionReminder" className="w-full">
+                    <SelectValue placeholder="Select when to be reminded" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {reminderOptions.map(option => (
+                      <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground">
+                  When to send reminders for your study sessions
+                </p>
+              </div>
+            </div>
+            
+            <div className="border rounded-lg p-4 space-y-4">
+              <div className="flex items-center gap-2">
+                <Bell className="h-5 w-5 text-orange-500" />
+                <h4 className="font-medium">Assignments</h4>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="assignmentReminder">Remind me</Label>
+                <Select
+                  value={assignmentReminder}
+                  onValueChange={setAssignmentReminder}
+                >
+                  <SelectTrigger id="assignmentReminder" className="w-full">
+                    <SelectValue placeholder="Select when to be reminded" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {reminderOptions.map(option => (
+                      <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground">
+                  When to send reminders for assignments and projects
+                </p>
+              </div>
+            </div>
+            
+            <div className="border rounded-lg p-4 space-y-4">
+              <div className="flex items-center gap-2">
+                <Bell className="h-5 w-5 text-red-500" />
+                <h4 className="font-medium">Exams</h4>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="examReminder">Remind me</Label>
+                <Select
+                  value={examReminder}
+                  onValueChange={setExamReminder}
+                >
+                  <SelectTrigger id="examReminder" className="w-full">
+                    <SelectValue placeholder="Select when to be reminded" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {reminderOptions.map(option => (
+                      <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground">
+                  When to send reminders for exams and quizzes
+                </p>
+              </div>
+            </div>
+            
+            <div className="border rounded-lg p-4 space-y-4">
+              <div className="flex items-center gap-2">
+                <Bell className="h-5 w-5 text-blue-500" />
+                <h4 className="font-medium">All Other Events</h4>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="otherReminder">Remind me</Label>
+                <Select
+                  value={reminderTime}
+                  onValueChange={setReminderTime}
+                >
+                  <SelectTrigger id="otherReminder" className="w-full">
+                    <SelectValue placeholder="Select when to be reminded" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {reminderOptions.map(option => (
+                      <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground">
+                  When to send reminders for other course events
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       
         <div>
-          <h3 className="text-lg font-medium mb-2">1. Select Calendar Provider</h3>
+          <h3 className="text-lg font-medium mb-2">2. Select Calendar Provider</h3>
           <RadioGroup
             value={selectedProvider}
             onValueChange={setSelectedProvider}
@@ -355,7 +472,7 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
         {showScheduleForm && (
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <h3 className="text-lg font-medium">2. Course Schedule Information</h3>
+              <h3 className="text-lg font-medium">3. Course Schedule Information</h3>
               <div className="rounded-full bg-muted p-1">
                 <Info className="h-4 w-4 text-muted-foreground" />
               </div>

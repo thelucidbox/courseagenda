@@ -101,6 +101,11 @@ DTEND:${formatICSDate(event.endTime)}
 SUMMARY:${event.title}
 DESCRIPTION:${event.description || ''}
 LOCATION:${event.location || ''}
+${event.reminderMinutes ? `BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+TRIGGER:-PT${event.reminderMinutes}M
+END:VALARM` : ''}
 END:VEVENT
 END:VCALENDAR`;
 };
@@ -143,6 +148,11 @@ DTEND:${formatICSDate(event.endTime)}
 SUMMARY:${summary}
 DESCRIPTION:${description}
 LOCATION:${location}
+${event.reminderMinutes ? `BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+TRIGGER:-PT${event.reminderMinutes}M
+END:VALARM` : ''}
 END:VEVENT
 `;
   });
