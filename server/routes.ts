@@ -103,10 +103,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Logout
+  // Logout (support both GET and POST for flexibility)
   apiRouter.get('/auth/logout', (req, res) => {
     logout(req);
     res.redirect('/');
+  });
+  
+  apiRouter.post('/auth/logout', (req, res) => {
+    logout(req);
+    res.status(200).json({ message: 'Logged out successfully' });
   });
   
   // Authentication middleware
