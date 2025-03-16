@@ -9,9 +9,10 @@ if (!process.env.GEMINI_API_KEY) {
 // Initialize the Google Generative AI with the API key
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
-// Get the text-only generative model
+// Using LearnLM for education-focused analysis
+// Use the version-less "gemini-2.0-pro-exp" to always get the latest experimental version
 const textModel = genAI.getGenerativeModel({ 
-  model: 'gemini-pro',
+  model: 'learnlm-1.5-pro-experimental',
   generationConfig: {
     temperature: 0.2, // Lower temperature for more factual responses
     maxOutputTokens: 8192
@@ -19,8 +20,9 @@ const textModel = genAI.getGenerativeModel({
 });
 
 // Get the multimodal model that can process files
+// We'll use the education-optimized model for better syllabus analysis
 const multimodalModel = genAI.getGenerativeModel({ 
-  model: 'gemini-pro-vision',
+  model: 'learnlm-1.5-pro-experimental',
   generationConfig: {
     temperature: 0.2,
     maxOutputTokens: 8192
@@ -66,10 +68,10 @@ export async function extractInfoFromPDF(filePath: string, syllabusId: number): 
     
     const currentYear = new Date().getFullYear();
     const prompt = `
-      You are a syllabus analyzer designed to extract structured information from course syllabi for students.
+      You are a course syllabus expert who helps students organize their academic life by extracting structured information from syllabi. Your goal is to carefully analyze course syllabi and provide comprehensive information to help students succeed in their classes.
       
       TASK:
-      Carefully analyze the provided syllabus PDF and extract the following key information:
+      Analyze the provided syllabus PDF and extract the following key information with attention to educational details:
       
       1. Course Identification:
          - Course Code (e.g., CS101, MATH201, BIO-283)
@@ -77,22 +79,23 @@ export async function extractInfoFromPDF(filePath: string, syllabusId: number): 
          - Instructor Name (including title if available)
          - Term/Semester (e.g., Fall 2023, Spring 2024, Summer 2024)
       
-      2. Important Dates and Events:
+      2. Important Academic Dates and Events:
          For each event you identify (assignments, exams, quizzes, projects, presentations, etc.):
          - Event Type (categorize as: assignment, exam, quiz, project, presentation, paper, or other)
          - Title (descriptive name of the event)
          - Due Date (in YYYY-MM-DD format)
-         - Description (brief summary of what the event entails)
+         - Description (brief summary of what the event entails, any specific requirements)
       
-      IMPORTANT GUIDELINES:
-      - Read all pages of the PDF thoroughly
-      - Look at tables, charts, and any structured information carefully
-      - Identify the specific date formats used in the syllabus (MM/DD/YYYY, Month Day Year, etc.)
-      - Pay special attention to sections labeled "Schedule", "Due Dates", "Important Dates", "Course Calendar", etc.
-      - Be careful to distinguish between class meeting dates and assignment due dates
-      - For events where only a Month and Day are provided (without a year), infer the year as ${currentYear} unless context suggests otherwise
-      - For large PDFs, focus on extracting the most important dates and key course information
-      - If you find the syllabus has a weekly schedule, extract key milestones as events
+      IMPORTANT LEARNING GUIDELINES:
+      - Thoroughly analyze all pages of the PDF looking for educational elements
+      - Pay careful attention to tables, charts, and any structured information that contains learning objectives
+      - Recognize multiple date formats (MM/DD/YYYY, Month Day Year, etc.) that might be used in academic contexts
+      - Focus on sections labeled "Schedule", "Due Dates", "Important Dates", "Course Calendar", "Learning Outcomes", etc.
+      - Differentiate between class meeting dates and assignment due dates to provide accurate information
+      - For academic events where only Month and Day are provided (without year), infer the year as ${currentYear} unless context suggests otherwise
+      - For longer syllabi, prioritize extracting the most academically significant dates and key course information
+      - If the syllabus has a weekly schedule format, extract the key learning milestones as discrete events
+      - Look for course objectives, learning outcomes, and grading policies that would be important for a student to know
       
       OUTPUT FORMAT:
       Return a valid, properly formatted JSON object with the following structure:
@@ -264,32 +267,36 @@ export async function extractInfoFromPDF(filePath: string, syllabusId: number): 
  */
 export async function extractSyllabusInfo(syllabusText: string, syllabusId: number): Promise<ExtractedSyllabusInfo> {
   try {
+    const currentYear = new Date().getFullYear();
     const prompt = `
-      You are a syllabus analyzer designed to extract structured information from course syllabi for students.
-
+      You are a course syllabus expert who helps students organize their academic life by extracting structured information from syllabi. Your goal is to carefully analyze course syllabi text and provide comprehensive information to help students succeed in their classes.
+      
       TASK:
-      Carefully analyze the provided syllabus text and extract the following key information:
-
+      Analyze the provided syllabus text and extract the following key information with attention to educational details:
+      
       1. Course Identification:
          - Course Code (e.g., CS101, MATH201, BIO-283)
          - Course Name/Title (full course name)
          - Instructor Name (including title if available)
          - Term/Semester (e.g., Fall 2023, Spring 2024, Summer 2024)
-
-      2. Important Dates and Events:
+      
+      2. Important Academic Dates and Events:
          For each event you identify (assignments, exams, quizzes, projects, presentations, etc.):
          - Event Type (categorize as: assignment, exam, quiz, project, presentation, paper, or other)
          - Title (descriptive name of the event)
          - Due Date (in YYYY-MM-DD format)
-         - Description (brief summary of what the event entails)
-
-      IMPORTANT GUIDELINES:
-      - Search throughout the entire text to find all relevant dates and events
-      - Identify the specific date formats used in the syllabus (MM/DD/YYYY, Month Day Year, etc.)
-      - Pay special attention to sections labeled "Schedule", "Due Dates", "Important Dates", "Course Calendar", etc.
-      - Be careful to distinguish between class meeting dates and assignment due dates
-      - For events where only a Month and Day are provided (without a year), infer the year based on the term/semester
-
+         - Description (brief summary of what the event entails, any specific requirements)
+      
+      IMPORTANT LEARNING GUIDELINES:
+      - Thoroughly analyze all text looking for educational elements
+      - Pay careful attention to recurring patterns that might indicate assignments or graded work
+      - Recognize multiple date formats (MM/DD/YYYY, Month Day Year, etc.) that might be used in academic contexts
+      - Focus on sections labeled "Schedule", "Due Dates", "Important Dates", "Course Calendar", "Learning Outcomes", etc.
+      - Differentiate between class meeting dates and assignment due dates to provide accurate information
+      - For academic events where only Month and Day are provided (without year), infer the year as ${currentYear} unless context suggests otherwise
+      - Look for course objectives, learning outcomes, and grading policies that would be important for a student to know
+      - Pay attention to formatting cues like bold text, headings, or lists that may indicate important dates
+      
       OUTPUT FORMAT:
       Return a valid, properly formatted JSON object with the following structure:
       {
@@ -306,7 +313,7 @@ export async function extractSyllabusInfo(syllabusText: string, syllabusId: numb
           }
         ]
       }
-
+      
       If information for any field cannot be found, use null for that field. Events should have at minimum a title and due date.
       Ensure the JSON is properly formatted with correct quotes, commas, and brackets.
 
