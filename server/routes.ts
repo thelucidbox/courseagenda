@@ -427,6 +427,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Google Calendar OAuth routes
+  apiRouter.get('/auth/google/calendar', (req, res) => {
+    const { getAuthUrl } = require('./services/google-calendar');
+    const authUrl = getAuthUrl();
+    res.redirect(authUrl);
+  });
+
+  apiRouter.get('/auth/google/callback', async (req, res) => {
+    try {
+      const { getTokensFromCode } = require('./services/google-calendar');
+      const { code } = req.query;
+
+      if (!code || typeof code !== 'string') {
+        return res.status(400).json({ message: 'Authorization code is required' });
+      }
+
+      const tokens = await getTokensFromCode(code);
+      
+      // Store tokens in database
+      await storage.createOAuthToken({
+        userId: req.userId as number,
+        provider: 'google',
+        accessToken: tokens.access_token,
+        refreshToken: tokens.refresh_token,
+        expiresAt: new Date(tokens.expiry_date),
+        scope: tokens.scope
+      });
+
+      // Redirect back to the calendar integration page
+      res.redirect('/calendar-integration/success');
+    } catch (error) {
+      console.error('Google Calendar OAuth error:', error);
+      res.redirect('/calendar-integration/error');
+    }
+  });
+
   // Register API routes
   app.use('/api', apiRouter);
 

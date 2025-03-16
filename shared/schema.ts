@@ -2,6 +2,19 @@ import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizz
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// OAuth token storage
+export const oauthTokens = pgTable("oauth_tokens", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  provider: text("provider").notNull(), // 'google', 'microsoft', etc.
+  accessToken: text("access_token").notNull(),
+  refreshToken: text("refresh_token"),
+  expiresAt: timestamp("expires_at"),
+  scope: text("scope"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
@@ -66,6 +79,15 @@ export const studySessions = pgTable("study_sessions", {
 });
 
 // Insert schemas
+export const insertOAuthTokenSchema = createInsertSchema(oauthTokens).pick({
+  userId: true,
+  provider: true,
+  accessToken: true,
+  refreshToken: true,
+  expiresAt: true,
+  scope: true,
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
@@ -121,6 +143,9 @@ export const insertStudySessionSchema = createInsertSchema(studySessions).pick({
 });
 
 // Types
+export type OAuthToken = typeof oauthTokens.$inferSelect;
+export type InsertOAuthToken = z.infer<typeof insertOAuthTokenSchema>;
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 
@@ -144,8 +169,12 @@ export const syllabusUploadSchema = z.object({
 });
 
 export const calendarIntegrationSchema = z.object({
-  provider: z.enum(['google', 'apple', 'outlook']),
+  provider: z.enum(['google', 'microsoft', 'apple']),
+  code: z.string().optional(), // OAuth authorization code
   accessToken: z.string().optional(),
+  refreshToken: z.string().optional(),
+  expiresAt: z.date().optional(),
+  scope: z.string().optional(),
 });
 
 // Schema for course schedule information

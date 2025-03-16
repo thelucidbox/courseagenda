@@ -1,13 +1,19 @@
 import {
-  users, syllabi, courseEvents, studyPlans, studySessions,
+  users, syllabi, courseEvents, studyPlans, studySessions, oauthTokens,
   type User, type InsertUser,
   type Syllabus, type InsertSyllabus,
   type CourseEvent, type InsertCourseEvent,
   type StudyPlan, type InsertStudyPlan,
-  type StudySession, type InsertStudySession
+  type StudySession, type InsertStudySession,
+  type OAuthToken, type InsertOAuthToken
 } from "@shared/schema";
 
 export interface IStorage {
+  // OAuth operations
+  createOAuthToken(token: InsertOAuthToken): Promise<OAuthToken>;
+  getOAuthToken(userId: number, provider: string): Promise<OAuthToken | undefined>;
+  updateOAuthToken(id: number, updates: Partial<InsertOAuthToken>): Promise<OAuthToken | undefined>;
+  
   // User operations
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
@@ -50,18 +56,23 @@ export class MemStorage implements IStorage {
   private studyPlanIdCounter: number;
   private studySessionIdCounter: number;
 
+  private oauthTokens: Map<number, OAuthToken>;
+  private oauthTokenIdCounter: number;
+
   constructor() {
     this.users = new Map();
     this.syllabi = new Map();
     this.courseEvents = new Map();
     this.studyPlans = new Map();
     this.studySessions = new Map();
+    this.oauthTokens = new Map();
     
     this.userIdCounter = 1;
     this.syllabusIdCounter = 1;
     this.courseEventIdCounter = 1;
     this.studyPlanIdCounter = 1;
     this.studySessionIdCounter = 1;
+    this.oauthTokenIdCounter = 1;
 
     // Add a sample user for development
     this.createUser({
@@ -70,6 +81,41 @@ export class MemStorage implements IStorage {
       displayName: "John Smith",
       initials: "JS"
     });
+  }
+
+  // OAuth operations
+  async createOAuthToken(insertToken: InsertOAuthToken): Promise<OAuthToken> {
+    const id = this.oauthTokenIdCounter++;
+    const token: OAuthToken = {
+      ...insertToken,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      refreshToken: insertToken.refreshToken ?? null,
+      expiresAt: insertToken.expiresAt ?? null,
+      scope: insertToken.scope ?? null
+    };
+    this.oauthTokens.set(id, token);
+    return token;
+  }
+
+  async getOAuthToken(userId: number, provider: string): Promise<OAuthToken | undefined> {
+    return Array.from(this.oauthTokens.values()).find(
+      token => token.userId === userId && token.provider === provider
+    );
+  }
+
+  async updateOAuthToken(id: number, updates: Partial<InsertOAuthToken>): Promise<OAuthToken | undefined> {
+    const token = this.oauthTokens.get(id);
+    if (!token) return undefined;
+    
+    const updatedToken = { 
+      ...token, 
+      ...updates,
+      updatedAt: new Date()
+    };
+    this.oauthTokens.set(id, updatedToken);
+    return updatedToken;
   }
 
   // User operations
