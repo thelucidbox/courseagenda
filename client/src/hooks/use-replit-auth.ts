@@ -20,13 +20,22 @@ export function useReplitAuth() {
     queryKey: ['/api/auth/user'],
     queryFn: async () => {
       try {
-        const response = await apiRequest<ReplitUser>('/api/auth/user');
-        return response;
-      } catch (err) {
-        if (err.status === 401) {
+        const response = await fetch('/api/auth/user', {
+          credentials: "include"
+        });
+        
+        if (response.status === 401) {
           return null;
         }
-        throw err;
+        
+        if (!response.ok) {
+          throw new Error(`${response.status}: ${response.statusText}`);
+        }
+        
+        return await response.json();
+      } catch (err) {
+        console.error("Auth error:", err);
+        return null;
       }
     },
     retry: false
