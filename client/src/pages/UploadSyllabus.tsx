@@ -89,7 +89,7 @@ const UploadSyllabus = () => {
   };
   
   const uploadMutation = useMutation({
-    mutationFn: async (params: { file: File, textContent?: string }) => {
+    mutationFn: async (params: UploadParams) => {
       const formData = new FormData();
       formData.append('file', params.file);
       
@@ -262,11 +262,11 @@ const UploadSyllabus = () => {
                       {uploadMutation.isPending ? (
                         <>
                           <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                          Processing...
+                          Uploading and processing...
                         </>
                       ) : (
                         <>
-                          <span className="text-lg">Process PDF</span>
+                          <span className="text-lg">{extractedText ? 'Continue with Extracted Text' : 'Process PDF'}</span>
                           <ArrowRight className="ml-3 h-5 w-5" />
                         </>
                       )}

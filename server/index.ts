@@ -68,3 +68,4 @@ app.use((req, res, next) => {
     log(`serving on port ${port}`);
   });
 })();
+console.log('Server starting with environment variables:', Object.keys(process.env));

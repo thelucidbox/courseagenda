@@ -452,13 +452,60 @@ export async function extractSyllabusInfo(syllabusText: string, syllabusId: numb
       }
       
       // Format the events with syllabusId
-      const formattedEvents = extractedData.events.map(event => ({
-        ...event,
-        syllabusId,
-        dueDate: new Date(event.dueDate),
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }));
+      const formattedEvents = extractedData.events.map(event => {
+        try {
+          // Validate and fix date format if needed
+          let dueDate: Date;
+          
+          if (!event.dueDate) {
+            // If no date found, use current date as placeholder
+            dueDate = new Date();
+            console.warn(`No valid date found for event "${event.title}", using current date as placeholder`);
+          } else {
+            dueDate = new Date(event.dueDate);
+            
+            // If invalid date, try to parse with different formats
+            if (isNaN(dueDate.getTime())) {
+              try {
+                // Try MM/DD/YYYY format
+                const dateParts = event.dueDate.split(/[\/\-\.]/);
+                if (dateParts.length === 3) {
+                  const month = parseInt(dateParts[0]) - 1;
+                  const day = parseInt(dateParts[1]);
+                  const year = dateParts[2].length === 2 
+                    ? parseInt(dateParts[2]) + (parseInt(dateParts[2]) > 50 ? 1900 : 2000)
+                    : parseInt(dateParts[2]);
+                  dueDate = new Date(year, month, day);
+                }
+              } catch (e) {
+                console.warn(`Error parsing date format: ${e}`);
+                dueDate = new Date(); // fallback to current date
+              }
+            }
+          }
+          
+          return {
+            eventType: event.eventType || 'other',
+            title: event.title,
+            description: event.description || null,
+            syllabusId,
+            dueDate: isNaN(dueDate.getTime()) ? new Date() : dueDate,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          };
+        } catch (dateError) {
+          console.error(`Error processing date for event "${event.title}":`, dateError);
+          return {
+            eventType: event.eventType || 'other',
+            title: event.title,
+            description: event.description || null,
+            syllabusId,
+            dueDate: new Date(), // Fallback to current date if there's an error
+            createdAt: new Date(),
+            updatedAt: new Date()
+          };
+        }
+      });
 
       return {
         courseCode: extractedData.courseCode || undefined,
