@@ -14,6 +14,12 @@ import { type Syllabus } from '@shared/schema';
 // Import our PDF worker configuration to ensure it's loaded
 import '@/lib/pdf-worker-config';
 
+// Define upload parameters interface
+interface UploadParams {
+  file: File;
+  textContent?: string;
+}
+
 const steps = [
   { label: 'Upload Syllabus', status: 'current' as const },
   { label: 'Create Study Plan', status: 'upcoming' as const },
@@ -71,8 +77,8 @@ const UploadSyllabus = () => {
       const textBlob = new Blob([text], { type: 'text/plain' });
       const textFile = new File([textBlob], 'syllabus.txt', { type: 'text/plain' });
       
-      // Use the same mutation as for PDF files
-      uploadMutation.mutate(textFile);
+      // Use the same mutation as for PDF files, but pass the text as well
+      uploadMutation.mutate({ file: textFile, textContent: text });
     } catch (error) {
       toast({
         title: 'Upload Failed',
@@ -83,9 +89,14 @@ const UploadSyllabus = () => {
   };
   
   const uploadMutation = useMutation({
-    mutationFn: async (file: File) => {
+    mutationFn: async (params: { file: File, textContent?: string }) => {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', params.file);
+      
+      // Add text content if available
+      if (params.textContent) {
+        formData.append('textContent', params.textContent);
+      }
       
       const response = await fetch('/api/syllabi/upload', {
         method: 'POST',
@@ -146,7 +157,10 @@ const UploadSyllabus = () => {
         uploadWithText(extractedText);
       } else {
         // Otherwise upload the PDF file directly
-        uploadMutation.mutate(selectedFile);
+        toast({
+          title: 'No Text Extracted',
+          description: 'Please wait for text extraction to complete or enter text manually.',
+        });
       }
     } else {
       toast({
