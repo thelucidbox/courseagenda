@@ -67,12 +67,33 @@ export async function extractInfoFromPDF(filePath: string, syllabusId: number): 
   try {
     console.log(`Processing PDF file at ${filePath} with Gemini Vision...`);
     
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+      console.error(`File not found: ${filePath}`);
+      return emptyResult();
+    }
+    
+    // Get file stats for debugging
+    const fileStats = fs.statSync(filePath);
+    console.log(`File stats:`, {
+      size: fileStats.size,
+      isFile: fileStats.isFile(),
+      created: fileStats.birthtime,
+      modified: fileStats.mtime
+    });
+    
     // Read the PDF file as buffer
     const fileBuffer = fs.readFileSync(filePath);
     
+    // Check if buffer is empty
+    if (fileBuffer.length === 0) {
+      console.error(`File is empty: ${filePath}`);
+      return emptyResult();
+    }
+    
     // Check file size - Gemini Vision has a limit (~4MB for base64 encoded content)
     const fileSizeInMB = fileBuffer.length / (1024 * 1024);
-    console.log(`PDF file size: ${fileSizeInMB.toFixed(2)} MB`);
+    console.log(`PDF file size: ${fileSizeInMB.toFixed(2)} MB, buffer length: ${fileBuffer.length} bytes`);
     
     if (fileSizeInMB > 3.5) {
       console.warn(`PDF file is large (${fileSizeInMB.toFixed(2)} MB). Gemini Vision might not process the entire document.`);

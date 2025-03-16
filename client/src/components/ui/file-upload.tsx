@@ -48,9 +48,25 @@ const FileUpload = ({
   };
 
   const validateAndProcessFile = (file: File) => {
-    // Check file type
+    // Log file details for debugging
+    console.log('Validating file:', { 
+      name: file.name, 
+      type: file.type, 
+      size: file.size,
+      lastModified: new Date(file.lastModified).toISOString()
+    });
+    
+    // Check file type - be more permissive with MIME types
     const fileType = file.type;
-    if (fileType !== 'application/pdf') {
+    const fileName = file.name.toLowerCase();
+    const isPdf = 
+      fileType === 'application/pdf' ||
+      fileType === 'application/x-pdf' ||
+      fileType === 'binary/octet-stream' ||
+      fileType.includes('pdf') ||
+      fileName.endsWith('.pdf');
+    
+    if (!isPdf) {
       setErrorMessage('Only PDF files are supported');
       toast({
         title: "Invalid file type",
