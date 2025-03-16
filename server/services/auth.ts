@@ -1,31 +1,40 @@
+import { oauth2 } from 'googleapis/build/src/apis/oauth2';
 import { google } from 'googleapis';
-import { type InsertUser, type User, type InsertOAuthToken } from '@shared/schema';
 import { storage } from '../storage';
-import { getInitials } from '@/lib/utils';
+import {
+  type InsertUser,
+  type User,
+  type InsertOAuthToken
+} from '@shared/schema';
 
-// Set up Google OAuth client
-const oauth2Client = new google.auth.OAuth2(
-  process.env.GOOGLE_OAUTH_CLIENT_ID,
-  process.env.GOOGLE_OAUTH_CLIENT_SECRET,
-  `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}/api/auth/google/callback`
-);
+// Google OAuth configuration
+const GOOGLE_OAUTH_CLIENT_ID = process.env.GOOGLE_OAUTH_CLIENT_ID;
+const GOOGLE_OAUTH_CLIENT_SECRET = process.env.GOOGLE_OAUTH_CLIENT_SECRET;
+const REDIRECT_URI = process.env.REDIRECT_URI || 'http://localhost:5000/api/auth/google/callback';
 
-// Define scopes - include calendar for integration
+// OAuth scopes
 const SCOPES = [
-  'https://www.googleapis.com/auth/userinfo.email',
-  'https://www.googleapis.com/auth/userinfo.profile',
-  'https://www.googleapis.com/auth/calendar',
-  'https://www.googleapis.com/auth/calendar.events'
+  'openid',
+  'profile',
+  'email',
+  'https://www.googleapis.com/auth/calendar'
 ];
+
+// Create OAuth2 client
+const oAuth2Client = new google.auth.OAuth2(
+  GOOGLE_OAUTH_CLIENT_ID,
+  GOOGLE_OAUTH_CLIENT_SECRET,
+  REDIRECT_URI
+);
 
 /**
  * Generate Google OAuth authorization URL
  */
 export function getGoogleAuthUrl(): string {
-  return oauth2Client.generateAuthUrl({
+  return oAuth2Client.generateAuthUrl({
     access_type: 'offline',
     scope: SCOPES,
-    prompt: 'consent' // Always ask for consent to get refresh token
+    prompt: 'consent' // Force showing the consent screen to get refresh token
   });
 }
 
@@ -34,95 +43,79 @@ export function getGoogleAuthUrl(): string {
  */
 export async function handleGoogleCallback(code: string): Promise<{
   user: User;
-  isNewUser: boolean;
+  tokens: any;
 }> {
-  try {
-    // Exchange auth code for tokens
-    const { tokens } = await oauth2Client.getToken(code);
+  // Exchange authorization code for tokens
+  const { tokens } = await oAuth2Client.getToken(code);
+  oAuth2Client.setCredentials(tokens);
+
+  // Get user info from Google
+  const oauth2Client = google.oauth2({
+    auth: oAuth2Client,
+    version: 'v2'
+  });
+  
+  const userInfo = await oauth2Client.userinfo.get();
+  
+  if (!userInfo.data.id || !userInfo.data.email) {
+    throw new Error('Could not retrieve user information from Google');
+  }
+
+  // Check if user already exists
+  let user = await storage.getUserByGoogleId(userInfo.data.id);
+  
+  if (!user) {
+    // If not, also check if user exists with this email
+    user = await storage.getUserByEmail(userInfo.data.email);
     
-    // Set credentials to get user info
-    oauth2Client.setCredentials(tokens);
-    
-    // Get user profile
-    const people = google.people({ version: 'v1', auth: oauth2Client });
-    const { data } = await people.people.get({
-      resourceName: 'people/me',
-      personFields: 'names,emailAddresses,photos'
-    });
-    
-    // Extract user information
-    const email = data.emailAddresses?.[0]?.value;
-    const name = data.names?.[0]?.displayName || email?.split('@')[0] || 'User';
-    const googleId = data.resourceName?.replace('people/', '') || '';
-    const profileImageUrl = data.photos?.[0]?.url;
-    
-    if (!email) {
-      throw new Error('No email provided by Google');
-    }
-    
-    // Check if user exists by Google ID
-    let existingUser = await storage.getUserByGoogleId(googleId);
-    
-    // If not found by Google ID, try by email
-    if (!existingUser) {
-      existingUser = await storage.getUserByEmail(email);
-    }
-    
-    let user: User;
-    let isNewUser = false;
-    
-    if (existingUser) {
-      // Update existing user if needed
-      if (!existingUser.googleId) {
-        // Link Google to existing email account
-        existingUser = await storage.updateUser(existingUser.id, {
-          googleId,
-          authProvider: 'google',
-          profileImageUrl: profileImageUrl || existingUser.profileImageUrl
-        });
-      }
-      user = existingUser;
+    if (user) {
+      // Update existing user with Google ID
+      user = await storage.updateUser(user.id, {
+        googleId: userInfo.data.id
+      }) || user;
     } else {
       // Create new user
-      const username = email.split('@')[0] + Math.floor(Math.random() * 1000);
-      
       const newUser: InsertUser = {
-        username,
-        email,
-        googleId,
-        displayName: name,
-        initials: getInitials(name),
-        profileImageUrl,
-        authProvider: 'google'
+        username: userInfo.data.email.split('@')[0] || `user_${Date.now()}`,
+        email: userInfo.data.email,
+        googleId: userInfo.data.id,
+        name: userInfo.data.name || '',
+        profileImage: userInfo.data.picture || ''
       };
       
       user = await storage.createUser(newUser);
-      isNewUser = true;
     }
-    
-    // Store tokens in the database
-    const tokenData: InsertOAuthToken = {
-      userId: user.id,
-      provider: 'google',
-      accessToken: tokens.access_token!,
-      refreshToken: tokens.refresh_token,
-      expiresAt: tokens.expiry_date ? new Date(tokens.expiry_date) : undefined,
-      scope: SCOPES.join(' ')
-    };
-    
-    // Check if user already has tokens, update if exists
-    const existingToken = await storage.getOAuthToken(user.id, 'google');
-    if (existingToken) {
-      await storage.updateOAuthToken(existingToken.id, tokenData);
-    } else {
-      await storage.createOAuthToken(tokenData);
-    }
-    
-    return { user, isNewUser };
-  } catch (error) {
-    console.error('Google auth error:', error);
-    throw new Error('Authentication failed');
   }
+
+  // Store/update OAuth tokens
+  const existingToken = await storage.getOAuthToken(user.id, 'google');
+  
+  // Calculate token expiration date
+  const expiresAt = new Date();
+  if (tokens.expiry_date) {
+    expiresAt.setTime(tokens.expiry_date);
+  } else if (tokens.expires_in) {
+    expiresAt.setTime(Date.now() + tokens.expires_in * 1000);
+  } else {
+    // Default to 1 hour if no expiration info
+    expiresAt.setTime(Date.now() + 3600 * 1000);
+  }
+
+  const tokenData: InsertOAuthToken = {
+    userId: user.id,
+    provider: 'google',
+    accessToken: tokens.access_token || '',
+    refreshToken: tokens.refresh_token || (existingToken?.refreshToken || ''),
+    expiresAt
+  };
+
+  if (existingToken) {
+    await storage.updateOAuthToken(existingToken.id, tokenData);
+  } else {
+    await storage.createOAuthToken(tokenData);
+  }
+
+  return { user, tokens };
 }
 
 /**
@@ -130,13 +123,14 @@ export async function handleGoogleCallback(code: string): Promise<{
  */
 export function createSession(req: any, user: User): void {
   req.session.userId = user.id;
+  req.session.isAuthenticated = true;
 }
 
 /**
  * Get authenticated user
  */
 export async function getAuthUser(req: any): Promise<User | null> {
-  if (!req.session?.userId) {
+  if (!req.session || !req.session.userId) {
     return null;
   }
   

@@ -19,6 +19,8 @@ import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
 import { extractSyllabusInfo, extractInfoFromPDF } from "./services/gemini";
+import session from "express-session";
+import { getGoogleAuthUrl, handleGoogleCallback, getAuthUser, createSession, logout } from "./services/auth";
 
 // Setup multer for file uploads
 const upload = multer({ 
@@ -42,13 +44,88 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup session middleware
+  app.use(session({
+    secret: process.env.SESSION_SECRET || 'dev-secret-key',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 1 week
+    }
+  }));
+  
   const apiRouter = Router();
   
-  // Authentication middleware (for demonstration, assumes userId = 1)
-  apiRouter.use((req, res, next) => {
-    // In a real app, you would get userId from session/token
-    req.userId = 1;
-    next();
+  // Google OAuth Authentication Routes
+  apiRouter.get('/auth/google', (req, res) => {
+    const authUrl = getGoogleAuthUrl();
+    res.redirect(authUrl);
+  });
+  
+  apiRouter.get('/auth/google/callback', async (req, res) => {
+    try {
+      const code = req.query.code as string;
+      
+      if (!code) {
+        return res.status(400).json({ message: 'Authorization code is required' });
+      }
+      
+      const { user } = await handleGoogleCallback(code);
+      
+      // Create session for authenticated user
+      createSession(req, user);
+      
+      // Redirect to the home page or dashboard
+      res.redirect('/');
+    } catch (error) {
+      console.error('Google callback error:', error);
+      res.status(500).json({ message: 'Authentication failed' });
+    }
+  });
+  
+  // Get authenticated user
+  apiRouter.get('/auth/user', async (req, res) => {
+    try {
+      const user = await getAuthUser(req);
+      
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+      
+      // Don't send sensitive data to the client
+      const { password, ...userWithoutPassword } = user;
+      
+      return res.status(200).json(userWithoutPassword);
+    } catch (error) {
+      console.error('Error getting authenticated user:', error);
+      return res.status(500).json({ message: 'Failed to get authenticated user' });
+    }
+  });
+  
+  // Logout
+  apiRouter.get('/auth/logout', (req, res) => {
+    logout(req);
+    res.redirect('/');
+  });
+  
+  // Authentication middleware
+  apiRouter.use((req: any, res, next) => {
+    // Get userId from session if available
+    if (req.session && req.session.userId) {
+      req.userId = req.session.userId;
+      return next();
+    }
+    
+    // For development, fallback to user ID 1
+    // In production, this should be removed and proper auth enforced
+    if (process.env.NODE_ENV !== 'production') {
+      req.userId = 1;
+      return next();
+    }
+    
+    // Otherwise, user is not authenticated
+    return res.status(401).json({ message: 'Not authenticated' });
   });
 
   // PDF upload endpoint
