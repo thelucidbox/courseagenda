@@ -17,27 +17,124 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 
+// Extend the course schedule schema for form validation
+const courseScheduleFormSchema = courseScheduleSchema.extend({
+  includeCourseSchedule: z.boolean().default(true)
+});
+
+type CourseScheduleFormValues = z.infer<typeof courseScheduleFormSchema>;
+
 interface CalendarIntegrationProps {
   studyPlanId: number;
   onIntegrationComplete?: () => void;
 }
 
+const WEEKDAYS = [
+  { value: 'monday', label: 'Monday' },
+  { value: 'tuesday', label: 'Tuesday' },
+  { value: 'wednesday', label: 'Wednesday' },
+  { value: 'thursday', label: 'Thursday' },
+  { value: 'friday', label: 'Friday' },
+  { value: 'saturday', label: 'Saturday' },
+  { value: 'sunday', label: 'Sunday' },
+];
+
 const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarIntegrationProps) => {
   const [selectedProvider, setSelectedProvider] = useState<string>('google');
-  const [integrating, setIntegrating] = useState(false);
+  const [showScheduleForm, setShowScheduleForm] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const integrationMutation = useMutation({
-    mutationFn: async () => {
-      return apiRequest('POST', `/api/study-plans/${studyPlanId}/calendar-integration`, { 
-        provider: selectedProvider 
+  // Fetch study plan and associated syllabus data
+  const { data: studyPlan } = useQuery<StudyPlan>({
+    queryKey: [`/api/study-plans/${studyPlanId}`],
+    enabled: !!studyPlanId
+  });
+
+  const { data: syllabus } = useQuery<Syllabus>({
+    queryKey: [`/api/syllabi/${studyPlan?.syllabusId}`],
+    enabled: !!studyPlan?.syllabusId
+  });
+
+  // Default meeting days as fallback
+  const defaultMeetingDays: ('monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday')[] = ['monday', 'wednesday', 'friday'];
+  
+  // Get form default values based on syllabus data or fallbacks
+  const getFormDefaults = () => {
+    return {
+      firstDayOfClass: new Date(),
+      lastDayOfClass: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days from now
+      meetingDays: defaultMeetingDays,
+      meetingTimeStart: '09:00',
+      meetingTimeEnd: '10:30',
+      includeCourseSchedule: true
+    };
+  };
+  
+  // Course schedule form
+  const form = useForm<CourseScheduleFormValues>({
+    resolver: zodResolver(courseScheduleFormSchema),
+    defaultValues: getFormDefaults()
+  });
+  
+  // Update form when syllabus data is available
+  useEffect(() => {
+    if (syllabus) {
+      form.reset({
+        ...form.getValues(),
+        firstDayOfClass: syllabus.firstDayOfClass ? new Date(syllabus.firstDayOfClass) : form.getValues().firstDayOfClass,
+        lastDayOfClass: syllabus.lastDayOfClass ? new Date(syllabus.lastDayOfClass) : form.getValues().lastDayOfClass,
+        meetingDays: syllabus.meetingDays && syllabus.meetingDays.length > 0 
+          ? syllabus.meetingDays as ('monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday')[]
+          : form.getValues().meetingDays,
+        meetingTimeStart: syllabus.meetingTimeStart || form.getValues().meetingTimeStart,
+        meetingTimeEnd: syllabus.meetingTimeEnd || form.getValues().meetingTimeEnd
       });
+    }
+  }, [syllabus, form]);
+
+  // Check if we need to show the schedule form
+  useEffect(() => {
+    if (syllabus) {
+      const hasScheduleInfo = syllabus.meetingDays && 
+                             syllabus.meetingDays.length > 0 &&
+                             syllabus.meetingTimeStart && 
+                             syllabus.meetingTimeEnd;
+      setShowScheduleForm(!hasScheduleInfo);
+    } else {
+      setShowScheduleForm(true);
+    }
+  }, [syllabus]);
+
+  const integrationMutation = useMutation({
+    mutationFn: async (scheduleData?: CourseScheduleFormValues) => {
+      const payload: any = { 
+        provider: selectedProvider
+      };
+      
+      // If we have schedule data and the user wants to include it, add it to the payload
+      if (scheduleData && scheduleData.includeCourseSchedule) {
+        Object.assign(payload, {
+          courseSchedule: {
+            firstDayOfClass: scheduleData.firstDayOfClass,
+            lastDayOfClass: scheduleData.lastDayOfClass,
+            meetingDays: scheduleData.meetingDays,
+            meetingTimeStart: scheduleData.meetingTimeStart,
+            meetingTimeEnd: scheduleData.meetingTimeEnd
+          }
+        });
+      }
+      
+      return apiRequest('POST', `/api/study-plans/${studyPlanId}/calendar-integration`, payload);
     },
     onSuccess: async () => {
       // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: [`/api/study-plans/${studyPlanId}`] });
       queryClient.invalidateQueries({ queryKey: ['/api/study-plans'] });
+      
+      if (studyPlan?.syllabusId) {
+        queryClient.invalidateQueries({ queryKey: [`/api/syllabi/${studyPlan.syllabusId}`] });
+      }
       
       toast({
         title: "Calendar Integration Successful",
@@ -49,7 +146,7 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
         onIntegrationComplete();
       }
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Integration Failed",
         description: error.message || "Could not integrate with calendar. Please try again.",
@@ -58,8 +155,25 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
     }
   });
 
+  const onSubmit = (data: CourseScheduleFormValues) => {
+    integrationMutation.mutate(data);
+  };
+
   const handleIntegrate = async () => {
-    integrationMutation.mutate();
+    // If we need to show the schedule form and it's not submitted, don't proceed
+    if (showScheduleForm) {
+      form.handleSubmit(onSubmit)();
+    } else {
+      // Pass empty data for mutation when no schedule form is needed
+      integrationMutation.mutate({
+        firstDayOfClass: new Date(),
+        lastDayOfClass: new Date(),
+        meetingDays: [],
+        meetingTimeStart: '',
+        meetingTimeEnd: '',
+        includeCourseSchedule: false
+      });
+    }
   };
 
   return (
@@ -72,29 +186,211 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
         <CardDescription>Add your study plan to your preferred calendar service</CardDescription>
       </CardHeader>
       
-      <CardContent>
-        <RadioGroup
-          value={selectedProvider}
-          onValueChange={setSelectedProvider}
-          className="grid grid-cols-1 gap-4 md:grid-cols-3"
-        >
-          {integrationProviders.map(provider => (
-            <div key={provider.id}>
-              <RadioGroupItem
-                value={provider.id}
-                id={provider.id}
-                className="peer sr-only"
-              />
-              <Label
-                htmlFor={provider.id}
-                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
-              >
-                <provider.icon className="mb-3 h-6 w-6" />
-                <span className="font-medium">{provider.name}</span>
-              </Label>
+      <CardContent className="space-y-6">
+        <div>
+          <h3 className="text-lg font-medium mb-2">1. Select Calendar Provider</h3>
+          <RadioGroup
+            value={selectedProvider}
+            onValueChange={setSelectedProvider}
+            className="grid grid-cols-1 gap-4 md:grid-cols-3"
+          >
+            {integrationProviders.map(provider => (
+              <div key={provider.id}>
+                <RadioGroupItem
+                  value={provider.id}
+                  id={provider.id}
+                  className="peer sr-only"
+                />
+                <Label
+                  htmlFor={provider.id}
+                  className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                >
+                  <provider.icon className="mb-3 h-6 w-6" />
+                  <span className="font-medium">{provider.name}</span>
+                </Label>
+              </div>
+            ))}
+          </RadioGroup>
+        </div>
+
+        {showScheduleForm && (
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <h3 className="text-lg font-medium">2. Course Schedule Information</h3>
+              <div className="rounded-full bg-muted p-1">
+                <Info className="h-4 w-4 text-muted-foreground" />
+              </div>
             </div>
-          ))}
-        </RadioGroup>
+            <p className="text-sm text-muted-foreground mb-4">
+              We need some information about your course schedule to create calendar events properly.
+            </p>
+            
+            <Form {...form}>
+              <form className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="includeCourseSchedule"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>Include course schedule in calendar</FormLabel>
+                        <FormDescription>
+                          When enabled, we'll create recurring events for your course meeting times.
+                        </FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                {form.watch("includeCourseSchedule") && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="firstDayOfClass"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col">
+                            <FormLabel>First Day of Class</FormLabel>
+                            <CalendarComponent
+                              mode="single"
+                              selected={field.value}
+                              onSelect={field.onChange}
+                              disabled={(date) => date < new Date("2020-01-01")}
+                              initialFocus
+                            />
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="lastDayOfClass"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col">
+                            <FormLabel>Last Day of Class</FormLabel>
+                            <CalendarComponent
+                              mode="single"
+                              selected={field.value}
+                              onSelect={field.onChange}
+                              disabled={(date) =>
+                                date < form.getValues("firstDayOfClass") ||
+                                date < new Date("2020-01-01")
+                              }
+                              initialFocus
+                            />
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {form.watch("includeCourseSchedule") && (
+                  <>
+                    <div className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="meetingDays"
+                        render={() => (
+                          <FormItem>
+                            <div className="mb-4">
+                              <FormLabel className="text-base">Meeting Days</FormLabel>
+                              <FormDescription>
+                                Select the days when your class meets.
+                              </FormDescription>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                              {WEEKDAYS.map((item) => (
+                                <FormField
+                                  key={item.value}
+                                  control={form.control}
+                                  name="meetingDays"
+                                  render={({ field }) => {
+                                    return (
+                                      <FormItem
+                                        key={item.value}
+                                        className="flex flex-row items-start space-x-3 space-y-0"
+                                      >
+                                        <FormControl>
+                                          <Checkbox
+                                            checked={field.value?.includes(item.value as any)}
+                                            onCheckedChange={(checked) => {
+                                              return checked
+                                                ? field.onChange([...field.value, item.value as any])
+                                                : field.onChange(
+                                                    field.value?.filter(
+                                                      (value) => value !== item.value
+                                                    )
+                                                  )
+                                            }}
+                                          />
+                                        </FormControl>
+                                        <FormLabel className="cursor-pointer font-normal">
+                                          {item.label}
+                                        </FormLabel>
+                                      </FormItem>
+                                    )
+                                  }}
+                                />
+                              ))}
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <FormField
+                        control={form.control}
+                        name="meetingTimeStart"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Class Start Time</FormLabel>
+                            <FormControl>
+                              <Input type="time" {...field} />
+                            </FormControl>
+                            <FormDescription>
+                              Enter the time when class begins (24-hour format).
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="meetingTimeEnd"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Class End Time</FormLabel>
+                            <FormControl>
+                              <Input type="time" {...field} />
+                            </FormControl>
+                            <FormDescription>
+                              Enter the time when class ends (24-hour format).
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </>
+                )}
+              </form>
+            </Form>
+          </div>
+        )}
       </CardContent>
       
       <CardFooter>

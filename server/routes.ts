@@ -259,7 +259,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   apiRouter.post('/study-plans/:id/calendar-integration', async (req, res) => {
     try {
       const studyPlanId = Number(req.params.id);
-      const { provider } = req.body;
+      const { provider, courseSchedule } = req.body;
       
       if (!provider) {
         return res.status(400).json({ message: 'Calendar provider is required' });
@@ -276,6 +276,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!syllabus) {
         return res.status(404).json({ message: 'Associated syllabus not found' });
+      }
+      
+      // Update syllabus with course schedule information if provided
+      if (courseSchedule) {
+        await storage.updateSyllabusInfo(syllabus.id, {
+          firstDayOfClass: courseSchedule.firstDayOfClass,
+          lastDayOfClass: courseSchedule.lastDayOfClass,
+          meetingDays: courseSchedule.meetingDays,
+          meetingTimeStart: courseSchedule.meetingTimeStart,
+          meetingTimeEnd: courseSchedule.meetingTimeEnd
+        });
       }
       
       // Get study sessions
@@ -301,6 +312,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
       }
+      
+      // If course schedule is provided, we would also create recurring events for class meetings
+      // This would involve creating events for each meeting day between firstDayOfClass and lastDayOfClass
       
       return res.status(200).json({ 
         studyPlan: updatedStudyPlan, 
