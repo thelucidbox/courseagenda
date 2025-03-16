@@ -1,79 +1,30 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useToast } from './use-toast';
-import { apiRequest } from '@/lib/queryClient';
+import { useReplitAuth } from './use-replit-auth';
 
-interface User {
-  id: number;
-  username: string;
-  email: string;
-  name?: string;
-  profileImage?: string;
-  googleId?: string;
-  createdAt: Date;
-}
-
+// This is a compatibility wrapper around useReplitAuth
+// It allows existing components to use useAuth() without changes
 export function useAuth() {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  
-  // Query to get the current authenticated user
   const { 
-    data: user, 
-    isLoading,
+    user, 
+    isLoading, 
+    isAuthenticated, 
+    isError, 
     error,
-    isError,
-    refetch
-  } = useQuery<User | null>({
-    queryKey: ['/api/auth/user'],
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: false,
-  });
-
-  // Mutation for logging out
-  const logoutMutation = useMutation({
-    mutationFn: async () => {
-      return apiRequest('/api/auth/logout', { method: 'POST' });
-    },
-    onSuccess: () => {
-      // Invalidate and refetch user data
-      queryClient.setQueryData(['/api/auth/user'], null);
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
-      
-      // Show success message
-      toast({
-        title: 'Logged out',
-        description: 'You have been successfully logged out',
-        variant: 'default',
-      });
-    },
-    onError: () => {
-      toast({
-        title: 'Error',
-        description: 'Failed to log out. Please try again.',
-        variant: 'destructive',
-      });
-    }
-  });
-
-  // Function to initiate Google login
-  const loginWithGoogle = () => {
-    window.location.href = '/api/auth/google';
-  };
-
-  // Function to log out
-  const logout = () => {
-    logoutMutation.mutate();
-  };
+    login,
+    logout 
+  } = useReplitAuth();
 
   return {
     user,
-    isAuthenticated: !!user,
+    isAuthenticated,
     isLoading,
     isError,
     error,
-    loginWithGoogle,
+    // Alias login as loginWithGoogle for backward compatibility
+    loginWithGoogle: login,
+    // Also provide the direct login method
+    login,
     logout,
-    refetch,
-    isLoggingOut: logoutMutation.isPending
+    refetch: () => {}, // Empty function for backward compatibility
+    isLoggingOut: false // Always false since the Replit auth handles this differently
   };
 }
