@@ -1,14 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import FileUpload from '@/components/ui/file-upload';
 import ProgressSteps from '@/components/ui/progress-steps';
 import PDFViewer from '@/components/ui/pdf-viewer';
+import DirectTextExtractor from '@/components/ui/direct-text-extractor';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { Loader2, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Loader2, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
 import { type Syllabus } from '@shared/schema';
+
+// Import our PDF worker configuration to ensure it's loaded
+import '@/lib/pdf-worker-config';
 
 const steps = [
   { label: 'Upload Syllabus', status: 'current' as const },
@@ -21,6 +25,62 @@ const UploadSyllabus = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [extractedText, setExtractedText] = useState<string | null>(null);
+  const [pdfProcessingStatus, setPdfProcessingStatus] = useState<'idle' | 'processing' | 'failed' | 'success'>('idle');
+  const [showDirectTextInput, setShowDirectTextInput] = useState<boolean>(false);
+  
+  // Handle PDF text extraction
+  const handleTextExtracted = (text: string) => {
+    setExtractedText(text);
+    setPdfProcessingStatus('success');
+  };
+  
+  // Handle PDF processing error
+  const handlePdfProcessingError = () => {
+    setPdfProcessingStatus('failed');
+    toast({
+      title: 'PDF Processing Issue',
+      description: 'We had trouble processing your PDF automatically. You can try entering course information manually instead.',
+      variant: 'destructive',
+    });
+  };
+  
+  // Reset state when file is removed
+  useEffect(() => {
+    if (!selectedFile) {
+      setExtractedText(null);
+      setPdfProcessingStatus('idle');
+      setShowDirectTextInput(false);
+    }
+  }, [selectedFile]);
+  
+  // Handle manual text submission
+  const handleManualTextSubmit = (text: string) => {
+    setExtractedText(text);
+    setPdfProcessingStatus('success');
+    setShowDirectTextInput(false);
+    
+    // Proceed with upload using the manually entered text
+    uploadWithText(text);
+  };
+  
+  // Upload text directly
+  const uploadWithText = async (text: string) => {
+    try {
+      // Create a text file from the input
+      const textBlob = new Blob([text], { type: 'text/plain' });
+      const textFile = new File([textBlob], 'syllabus.txt', { type: 'text/plain' });
+      
+      // Use the same mutation as for PDF files
+      uploadMutation.mutate(textFile);
+    } catch (error) {
+      toast({
+        title: 'Upload Failed',
+        description: error instanceof Error ? error.message : 'Failed to process your input',
+        variant: 'destructive',
+      });
+    }
+  };
   
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
@@ -81,7 +141,13 @@ const UploadSyllabus = () => {
 
   const handleContinue = () => {
     if (selectedFile) {
-      uploadMutation.mutate(selectedFile);
+      if (extractedText) {
+        // If we already have extracted text, use it
+        uploadWithText(extractedText);
+      } else {
+        // Otherwise upload the PDF file directly
+        uploadMutation.mutate(selectedFile);
+      }
     } else {
       toast({
         title: 'No File Selected',
@@ -89,6 +155,11 @@ const UploadSyllabus = () => {
         variant: 'destructive',
       });
     }
+  };
+  
+  // Switch to manual text input mode
+  const handleSwitchToManualInput = () => {
+    setShowDirectTextInput(true);
   };
 
   return (
@@ -109,45 +180,97 @@ const UploadSyllabus = () => {
               </AlertDescription>
             </Alert>
             
-            {!selectedFile ? (
+            {showDirectTextInput ? (
+              // Manual text input component
+              <DirectTextExtractor 
+                onTextExtracted={handleManualTextSubmit}
+                onCancel={() => {
+                  setShowDirectTextInput(false);
+                  setPdfProcessingStatus('idle');
+                }}
+              />
+            ) : !selectedFile ? (
+              // Initial file upload component
               <FileUpload onFileSelect={handleFileSelect} />
             ) : (
+              // PDF Viewer with processing UI
               <div className="relative">
-                <PDFViewer file={selectedFile} onTextExtracted={() => {}} />
-                <div className="absolute top-4 right-4 bg-white/90 p-3 rounded-md shadow-md">
-                  <div className="flex items-center">
-                    <div className="h-4 w-4 mr-2 rounded-full border-2 border-primary border-t-transparent animate-spin"></div>
-                    <span className="text-xs font-medium">Processing PDF...</span>
-                  </div>
-                </div>
+                <PDFViewer 
+                  file={selectedFile} 
+                  onTextExtracted={handleTextExtracted} 
+                />
                 
-                {/* Additional guidance banner */}
-                {/* Single, prominent continue button */}
-              <div className="mt-6 flex justify-center">
-                <Button 
-                  onClick={handleContinue}
-                  disabled={uploadMutation.isPending}
-                  size="lg"
-                  className="w-full max-w-md bg-primary shadow-lg text-white font-medium py-6"
-                >
-                  {uploadMutation.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-lg">Process PDF</span>
-                      <ArrowRight className="ml-3 h-5 w-5" />
-                    </>
-                  )}
-                </Button>
-              </div>
+                {pdfProcessingStatus === 'processing' && (
+                  <div className="absolute top-4 right-4 bg-white/90 p-3 rounded-md shadow-md">
+                    <div className="flex items-center">
+                      <div className="h-4 w-4 mr-2 rounded-full border-2 border-primary border-t-transparent animate-spin"></div>
+                      <span className="text-xs font-medium">Processing PDF...</span>
+                    </div>
+                  </div>
+                )}
+                
+                {pdfProcessingStatus === 'failed' && (
+                  <div className="mt-4">
+                    <Alert variant="destructive" className="mb-4">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertTitle>PDF Processing Failed</AlertTitle>
+                      <AlertDescription>
+                        We couldn't automatically process this PDF. Try entering the information manually instead.
+                      </AlertDescription>
+                    </Alert>
+                    
+                    <div className="flex justify-center">
+                      <Button 
+                        onClick={handleSwitchToManualInput}
+                        className="mr-2"
+                      >
+                        Enter Information Manually
+                      </Button>
+                      <Button 
+                        onClick={() => setSelectedFile(null)}
+                        variant="outline"
+                      >
+                        Try Another File
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                
+                {pdfProcessingStatus !== 'failed' && (
+                  <div className="mt-6 flex justify-center">
+                    <Button 
+                      onClick={handleContinue}
+                      disabled={uploadMutation.isPending}
+                      size="lg"
+                      className="w-full max-w-md bg-primary shadow-lg text-white font-medium py-6"
+                    >
+                      {uploadMutation.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-lg">Process PDF</span>
+                          <ArrowRight className="ml-3 h-5 w-5" />
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
             
-            {selectedFile && (
-              <div className="mt-4 flex justify-end">
+            {selectedFile && !showDirectTextInput && (
+              <div className="mt-4 flex justify-between items-center">
+                <Button 
+                  onClick={handleSwitchToManualInput}
+                  variant="ghost"
+                  size="sm" 
+                >
+                  Enter information manually instead
+                </Button>
+                
                 <Button 
                   onClick={() => setSelectedFile(null)} 
                   variant="outline" 

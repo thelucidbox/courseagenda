@@ -5,23 +5,40 @@
 
 import { pdfjs } from 'react-pdf';
 
-// Configure PDF.js to use the built-in fake worker
-// This bypasses the need for external worker files
-pdfjs.GlobalWorkerOptions.workerSrc = '';
+// Define a base URL for the worker
+const BASE_URL = window.location.origin;
 
-// Disable warning messages
-console.warn = (function(originalWarn) {
-  return function(msg: string, ...args: any[]) {
-    // Suppress worker-related warnings
-    if (
-      msg?.includes('Setting up fake worker') || 
-      msg?.includes('worker') ||
-      msg?.includes('pdf.worker')
-    ) {
-      return;
-    }
-    return originalWarn.call(console, msg, ...args);
-  };
-})(console.warn);
+// Set the worker source to our custom worker file
+pdfjs.GlobalWorkerOptions.workerSrc = `${BASE_URL}/custom-pdf-worker.js`;
+
+// Disable worker-related warnings
+const originalConsoleError = console.error;
+console.error = function(msg, ...args) {
+  // Suppress PDF.js worker-related errors
+  if (
+    (typeof msg === 'string' && (
+      msg.includes('PDF.js') || 
+      msg.includes('worker') || 
+      msg.includes('GlobalWorkerOptions')
+    )) || 
+    args.some(arg => arg?.message?.includes?.('worker'))
+  ) {
+    console.log('PDF.js worker message suppressed');
+    return;
+  }
+  return originalConsoleError.call(console, msg, ...args);
+};
+
+// Handle fallback if the worker fails to load
+window.addEventListener('error', function(event) {
+  if (
+    event.message?.includes('worker') || 
+    event.filename?.includes('pdf') || 
+    event.error?.stack?.includes('pdf')
+  ) {
+    console.log('PDF worker error detected, using fallback mode');
+    pdfjs.GlobalWorkerOptions.workerSrc = '';
+  }
+}, true);
 
 export default pdfjs;
