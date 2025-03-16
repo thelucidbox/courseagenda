@@ -10,7 +10,12 @@ import {
 // Google OAuth configuration
 const GOOGLE_OAUTH_CLIENT_ID = process.env.GOOGLE_OAUTH_CLIENT_ID;
 const GOOGLE_OAUTH_CLIENT_SECRET = process.env.GOOGLE_OAUTH_CLIENT_SECRET;
-const REDIRECT_URI = process.env.REDIRECT_URI || 'http://localhost:5000/api/auth/google/callback';
+
+// Get the Replit domain
+const replitDomain = process.env.REPLIT_DOMAINS ? process.env.REPLIT_DOMAINS.split(',')[0] : null;
+const REDIRECT_URI = process.env.REDIRECT_URI || 
+                    (replitDomain ? `https://${replitDomain}/api/auth/google/callback` : 
+                     'http://localhost:5000/api/auth/google/callback');
 
 // OAuth scopes
 const SCOPES = [
