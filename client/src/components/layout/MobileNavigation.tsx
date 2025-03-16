@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useMobile } from "@/hooks/use-mobile";
-import { useAuth } from "@/hooks/use-auth";
+import { useReplitAuth } from "@/hooks/use-replit-auth";
 import { getInitials } from "@/lib/utils";
 import { 
   Menu, 
@@ -22,7 +22,7 @@ const MobileNavigation = () => {
   const [open, setOpen] = useState(false);
   const [location] = useLocation();
   const { isMobile } = useMobile();
-  const { user, isAuthenticated, loginWithGoogle, logout } = useAuth();
+  const { user, isAuthenticated, login, logout } = useReplitAuth();
   
   // Only display on mobile
   if (!isMobile) {
@@ -130,12 +130,12 @@ const MobileNavigation = () => {
                   variant="default" 
                   className="w-full" 
                   onClick={() => { 
-                    loginWithGoogle();
+                    login();
                     setOpen(false);
                   }}
                 >
                   <LogIn className="mr-2 h-4 w-4" />
-                  Sign in with Google
+                  Log in with Replit
                 </Button>
               )}
             </div>

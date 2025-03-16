@@ -9,14 +9,14 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth } from "@/hooks/use-auth";
+import { useReplitAuth } from "@/hooks/use-replit-auth";
 import { getInitials } from "@/lib/utils";
 import { useMobile } from "@/hooks/use-mobile";
 import { CalendarRange, LogOut, UserCircle, BookOpen, Home, Upload } from "lucide-react";
 
 const Header = () => {
   const [location] = useLocation();
-  const { user, isAuthenticated, loginWithGoogle, logout } = useAuth();
+  const { user, isAuthenticated, login, logout } = useReplitAuth();
   const { isMobile } = useMobile();
 
   // Only show the mobile menu toggle on mobile devices
@@ -91,8 +91,8 @@ const Header = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button onClick={loginWithGoogle}>
-              Sign in with Google
+            <Button onClick={login}>
+              Log in with Replit
             </Button>
           )}
         </div>

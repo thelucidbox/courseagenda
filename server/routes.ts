@@ -20,6 +20,7 @@ import * as path from "path";
 import * as os from "os";
 import { extractSyllabusInfo, extractInfoFromPDF } from "./services/gemini";
 import session from "express-session";
+import { setupAuth, isAuthenticated } from "./services/replitAuth";
 import { getGoogleAuthUrl, handleGoogleCallback, getAuthUser, createSession, logout } from "./services/auth";
 
 // Setup multer for file uploads
@@ -44,16 +45,8 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Setup session middleware
-  app.use(session({
-    secret: process.env.SESSION_SECRET || 'dev-secret-key',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 1 week
-    }
-  }));
+  // Setup Replit Auth
+  await setupAuth(app);
   
   const apiRouter = Router();
   
@@ -116,9 +109,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Authentication middleware
   apiRouter.use((req: any, res, next) => {
-    // Get userId from session if available
-    if (req.session && req.session.userId) {
-      req.userId = req.session.userId;
+    // Get user from session (provided by passport)
+    if (req.isAuthenticated() && req.user?.id) {
+      req.userId = req.user.id;
       return next();
     }
     
