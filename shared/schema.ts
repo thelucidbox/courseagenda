@@ -18,9 +18,13 @@ export const oauthTokens = pgTable("oauth_tokens", {
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+  password: text("password"),  // Making password optional for OAuth users
   displayName: text("display_name"),
   initials: text("initials"),
+  email: text("email").unique(),
+  googleId: text("google_id").unique(),
+  profileImageUrl: text("profile_image_url"),
+  authProvider: text("auth_provider"), // 'google', 'email', etc.
 });
 
 export const syllabi = pgTable("syllabi", {
