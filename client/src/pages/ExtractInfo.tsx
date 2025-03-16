@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useLocation } from 'wouter';
+import { useRoute, useLocation } from 'wouter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -33,7 +33,8 @@ const syllabusInfoSchema = z.object({
 type SyllabusInfoValues = z.infer<typeof syllabusInfoSchema>;
 
 const ExtractInfo = () => {
-  const { id } = useParams<{ id: string }>();
+  const [, params] = useRoute<{ id: string }>('/extract/:id');
+  const id = params?.id;
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();

@@ -44,9 +44,9 @@ const CalendarPermissions: React.FC = () => {
       
       // Navigate to syllabus upload or info extraction depending on the flow
       if (syllabusId) {
-        navigate(`/extract-info/${syllabusId}`);
+        navigate(`/extract/${syllabusId}`);
       } else {
-        navigate('/upload-syllabus');
+        navigate('/upload');
       }
     },
     onError: (error) => {
@@ -70,9 +70,9 @@ const CalendarPermissions: React.FC = () => {
     });
     
     if (syllabusId) {
-      navigate(`/extract-info/${syllabusId}`);
+      navigate(`/extract/${syllabusId}`);
     } else {
-      navigate('/upload-syllabus');
+      navigate('/upload');
     }
   };
 
