@@ -26,19 +26,29 @@ const DirectTextExtractor = ({ onTextExtracted, onCancel }: DirectTextExtractorP
     setIsSubmitting(true);
     
     // Create a formatted text with course information and syllabus content
+    // This format is designed to be easily parsed by the Gemini API
     const formattedText = `
-Course Name: ${courseName}
-Course Code: ${courseCode}
-Instructor: ${instructor}
-Term: ${term}
+COURSE INFORMATION
+----------------
+Course Name: ${courseName || 'Not specified'}
+Course Code: ${courseCode || 'Not specified'}
+Instructor: ${instructor || 'Not specified'}
+Term: ${term || 'Not specified'}
 
-Syllabus Content:
+SYLLABUS CONTENT
+----------------
 ${text}
     `.trim();
     
+    console.log('Submitting manual text input with length:', formattedText.length);
+    
+    // Add a small delay to simulate processing
     setTimeout(() => {
+      // Pass the extracted text back to the parent component
       onTextExtracted(formattedText);
       setIsSubmitting(false);
+      
+      console.log('Manual text extraction completed successfully');
     }, 500);
   };
   

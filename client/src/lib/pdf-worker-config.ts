@@ -5,11 +5,16 @@
 
 import { pdfjs } from 'react-pdf';
 
-// Define a base URL for the worker
-const BASE_URL = window.location.origin;
+// Use the CDN version of the PDF.js worker
+// This ensures we have a reliable worker file from the official source
+const CDN_URL = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
 
-// Set the worker source to our custom worker file
-pdfjs.GlobalWorkerOptions.workerSrc = `${BASE_URL}/custom-pdf-worker.js`;
+// Set the worker source to the CDN version
+console.log('Setting PDF.js worker source to CDN URL:', CDN_URL);
+pdfjs.GlobalWorkerOptions.workerSrc = CDN_URL;
+
+// Log successful initialization
+console.log('PDF.js worker configuration initialized');
 
 // Disable worker-related warnings
 const originalConsoleError = console.error;
@@ -29,7 +34,7 @@ console.error = function(msg, ...args) {
   return originalConsoleError.call(console, msg, ...args);
 };
 
-// Handle fallback if the worker fails to load
+// Handle fallback if the CDN worker fails to load
 window.addEventListener('error', function(event) {
   if (
     event.message?.includes('worker') || 
@@ -37,7 +42,9 @@ window.addEventListener('error', function(event) {
     event.error?.stack?.includes('pdf')
   ) {
     console.log('PDF worker error detected, using fallback mode');
-    pdfjs.GlobalWorkerOptions.workerSrc = '';
+    // Try a different CDN as fallback
+    pdfjs.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+    console.log('Switched to fallback PDF.js worker URL');
   }
 }, true);
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
-import { Document, Page, pdfjs } from 'react-pdf';
+import { Document, Page } from 'react-pdf';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Download, Search, AlertCircle } from 'lucide-react';
@@ -10,7 +10,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 // Import the central PDF worker configuration
-import '@/lib/pdf-worker-config';
+// This ensures the PDF.js worker is properly set up before trying to use the library
+import pdfjs from '@/lib/pdf-worker-config';
+
+// Log that the PDF viewer component is loaded with the worker configuration
+console.log('PDF Viewer initialized with worker source:', pdfjs.GlobalWorkerOptions.workerSrc);
 
 interface PDFViewerProps {
   file: File | null;
