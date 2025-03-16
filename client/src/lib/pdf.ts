@@ -8,8 +8,8 @@ export type PDFTextContent = {
 
 // Initialize PDF.js worker
 const initializePdfJS = async () => {
-  const pdfjsWorker = await import('pdfjs-dist/build/pdf.worker.entry');
-  pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+  // Use local worker instead of dynamic import to avoid CORS issues
+  pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
 };
 
 // Extract text from PDF file
