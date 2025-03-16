@@ -429,6 +429,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Calendar API endpoints for getting auth URLs
+  apiRouter.get('/calendar/google/auth-url', (_req, res) => {
+    try {
+      const authUrl = getAuthUrl();
+      res.json({ url: authUrl });
+    } catch (error) {
+      console.error("Failed to generate auth URL:", error);
+      res.status(500).json({ message: "Failed to generate authorization URL" });
+    }
+  });
+
   // Google Calendar OAuth routes
   apiRouter.get('/auth/google/calendar', (_req, res) => {
     try {

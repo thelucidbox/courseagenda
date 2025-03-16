@@ -311,19 +311,27 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
     }
     
     // Handle Google Calendar integration
-    // If we need to show the schedule form and it's not submitted, don't proceed
-    if (showScheduleForm) {
-      form.handleSubmit(onSubmit)();
-    } else {
-      // Pass empty data for mutation when no schedule form is needed
-      integrationMutation.mutate({
-        firstDayOfClass: new Date(),
-        lastDayOfClass: new Date(),
-        meetingDays: [] as WeekdayType[],
-        meetingTimeStart: '',
-        meetingTimeEnd: '',
-        includeCourseSchedule: false
-      });
+    if (selectedProvider === 'google') {
+      try {
+        // Fetch the OAuth URL from the server
+        const response = await fetch('/api/calendar/google/auth-url');
+        if (!response.ok) {
+          throw new Error('Failed to get authorization URL');
+        }
+        
+        const { url } = await response.json();
+        
+        // Redirect to Google's OAuth page
+        window.location.href = url;
+      } catch (error) {
+        console.error('Failed to start OAuth flow:', error);
+        toast({
+          title: "Authentication Failed",
+          description: "Could not connect to Google Calendar. Please try again.",
+          variant: "destructive"
+        });
+      }
+      return;
     }
   };
 
