@@ -304,35 +304,8 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
   };
 
   const handleIntegrate = async () => {
-    // If the user selected the ICS file option, download it
-    if (selectedProvider === 'ics') {
-      handleDownloadICS();
-      return;
-    }
-    
-    // Handle Google Calendar integration
-    if (selectedProvider === 'google') {
-      try {
-        // Fetch the OAuth URL from the server
-        const response = await fetch('/api/calendar/google/auth-url');
-        if (!response.ok) {
-          throw new Error('Failed to get authorization URL');
-        }
-        
-        const { url } = await response.json();
-        
-        // Redirect to Google's OAuth page
-        window.location.href = url;
-      } catch (error) {
-        console.error('Failed to start OAuth flow:', error);
-        toast({
-          title: "Authentication Failed",
-          description: "Could not connect to Google Calendar. Please try again.",
-          variant: "destructive"
-        });
-      }
-      return;
-    }
+    // For now, we only support ICS file download
+    handleDownloadICS();
   };
 
   return (
@@ -486,12 +459,21 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
             </div>
             
             <div 
-              className={`border rounded-lg p-5 cursor-pointer hover:border-primary transition-colors ${selectedProvider === 'google' ? 'bg-primary/5 border-primary' : ''}`}
-              onClick={() => setSelectedProvider('google')}
+              className={`border rounded-lg p-5 cursor-pointer hover:border-primary transition-colors opacity-70 ${selectedProvider === 'google' ? 'bg-primary/5 border-primary' : ''}`}
+              onClick={() => {
+                toast({
+                  title: "Coming Soon",
+                  description: "Direct Google Calendar integration will be available in a future update.",
+                  variant: "default"
+                });
+              }}
             >
               <div className="flex items-center gap-2 mb-3">
                 <CalendarIcon className="h-5 w-5 text-primary" />
-                <h4 className="font-medium">Connect to Google Calendar</h4>
+                <div className="flex items-center">
+                  <h4 className="font-medium">Connect to Google Calendar</h4>
+                  <span className="ml-2 text-xs bg-yellow-200 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 px-2 py-0.5 rounded-full">Coming Soon</span>
+                </div>
               </div>
               <p className="text-sm text-muted-foreground">
                 Automatically sync your study plan with your Google Calendar account
@@ -697,28 +679,16 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
         <Button 
           onClick={handleIntegrate} 
           className="w-full sm:w-2/3"
-          disabled={selectedProvider === 'ics' ? icsDownloading : integrationMutation.isPending}
+          disabled={icsDownloading}
         >
-          {selectedProvider === 'ics' ? (
-            icsDownloading ? (
-              <span className="flex items-center">
-                <span className="animate-spin mr-2">⟳</span> Generating...
-              </span>
-            ) : (
-              <span className="flex items-center">
-                <Download className="mr-2 h-4 w-4" /> Download Calendar File
-              </span>
-            )
+          {icsDownloading ? (
+            <span className="flex items-center">
+              <span className="animate-spin mr-2">⟳</span> Generating...
+            </span>
           ) : (
-            integrationMutation.isPending ? (
-              <span className="flex items-center">
-                <span className="animate-spin mr-2">⟳</span> Connecting...
-              </span>
-            ) : (
-              <span className="flex items-center">
-                <CalendarIcon className="mr-2 h-4 w-4" /> Sync with Google Calendar
-              </span>
-            )
+            <span className="flex items-center">
+              <Download className="mr-2 h-4 w-4" /> Download Calendar File
+            </span>
           )}
         </Button>
       </CardFooter>
