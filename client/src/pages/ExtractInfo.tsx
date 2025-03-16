@@ -126,8 +126,13 @@ const ExtractInfo = () => {
         instructor: syllabus.instructor || '',
         term: syllabus.term || '',
       });
+      
+      // Auto-trigger the extraction if the syllabus exists but there are no events yet
+      if (syllabus.status === 'uploaded' && (!events || events.length === 0)) {
+        extractMutation.mutate();
+      }
     }
-  }, [syllabus, form]);
+  }, [syllabus, events, form, extractMutation]);
 
   const onSubmit = (data: SyllabusInfoValues) => {
     updateSyllabusMutation.mutate(data);
