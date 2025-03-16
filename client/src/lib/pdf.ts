@@ -8,8 +8,15 @@ export type PDFTextContent = {
 
 // Initialize PDF.js worker
 const initializePdfJS = async () => {
-  // Use local worker instead of dynamic import to avoid CORS issues
-  pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
+  try {
+    // Use the dynamic import feature of pdf.js
+    const pdfjsWorker = await import('pdfjs-dist/build/pdf.worker.entry');
+    pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+  } catch (error) {
+    console.warn('Failed to load PDF.js worker dynamically, using fake worker:', error);
+    // Fall back to the fake worker mode
+    pdfjs.GlobalWorkerOptions.workerSrc = '';
+  }
 };
 
 // Extract text from PDF file
