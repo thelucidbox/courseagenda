@@ -29,18 +29,36 @@ const multimodalModel = genAI.getGenerativeModel({
   }
 });
 
+// Raw event from Gemini API - with string dates
+interface ExtractedEvent {
+  eventType: string;
+  title: string;
+  dueDate: string; // Date in string format before processing
+  description?: string | null;
+}
+
+// Raw data from Gemini API
 interface ExtractedSyllabusInfo {
+  courseCode?: string | null;
+  courseName?: string | null;
+  instructor?: string | null;
+  term?: string | null;
+  events: ExtractedEvent[]; // Raw events before processing
+}
+
+// Processed data with properly converted dates, ready for database
+interface ProcessedSyllabusInfo {
   courseCode?: string;
   courseName?: string;
   instructor?: string;
   term?: string;
-  events: InsertCourseEvent[];
+  events: InsertCourseEvent[]; // Processed events with Date objects
 }
 
 /**
  * Extract course information and events from a PDF file using Gemini Vision
  */
-export async function extractInfoFromPDF(filePath: string, syllabusId: number): Promise<ExtractedSyllabusInfo> {
+export async function extractInfoFromPDF(filePath: string, syllabusId: number): Promise<ProcessedSyllabusInfo> {
   try {
     console.log(`Processing PDF file at ${filePath} with Gemini Vision...`);
     
@@ -204,29 +222,38 @@ export async function extractInfoFromPDF(filePath: string, syllabusId: number): 
         try {
           // Validate and fix date format if needed
           let dueDate: Date;
-          if (typeof event.dueDate === 'string') {
-            dueDate = new Date(event.dueDate);
-            // If invalid date, try to parse with different formats
-            if (isNaN(dueDate.getTime())) {
-              // Try MM/DD/YYYY format
-              const parts = event.dueDate.split(/[\/\-\.]/);
-              if (parts.length === 3) {
-                const month = parseInt(parts[0]) - 1;
-                const day = parseInt(parts[1]);
-                const year = parts[2].length === 2 
-                  ? parseInt(parts[2]) + (parseInt(parts[2]) > 50 ? 1900 : 2000)
-                  : parseInt(parts[2]);
-                dueDate = new Date(year, month, day);
-              }
-            }
-          } else {
+          
+          if (!event.dueDate) {
             // If no date found, use current date as placeholder
             dueDate = new Date();
             console.warn(`No valid date found for event "${event.title}", using current date as placeholder`);
+          } else {
+            dueDate = new Date(event.dueDate);
+            
+            // If invalid date, try to parse with different formats
+            if (isNaN(dueDate.getTime())) {
+              try {
+                // Try MM/DD/YYYY format
+                const dateParts = event.dueDate.split(/[\/\-\.]/);
+                if (dateParts.length === 3) {
+                  const month = parseInt(dateParts[0]) - 1;
+                  const day = parseInt(dateParts[1]);
+                  const year = dateParts[2].length === 2 
+                    ? parseInt(dateParts[2]) + (parseInt(dateParts[2]) > 50 ? 1900 : 2000)
+                    : parseInt(dateParts[2]);
+                  dueDate = new Date(year, month, day);
+                }
+              } catch (e) {
+                console.warn(`Error parsing date format: ${e}`);
+                dueDate = new Date(); // fallback to current date
+              }
+            }
           }
           
           return {
-            ...event,
+            eventType: event.eventType || 'other',
+            title: event.title,
+            description: event.description || null,
             syllabusId,
             dueDate: isNaN(dueDate.getTime()) ? new Date() : dueDate,
             createdAt: new Date(),
@@ -235,7 +262,9 @@ export async function extractInfoFromPDF(filePath: string, syllabusId: number): 
         } catch (dateError) {
           console.error(`Error processing date for event "${event.title}":`, dateError);
           return {
-            ...event,
+            eventType: event.eventType || 'other',
+            title: event.title,
+            description: event.description || null,
             syllabusId,
             dueDate: new Date(), // Fallback to current date if there's an error
             createdAt: new Date(),
@@ -265,7 +294,7 @@ export async function extractInfoFromPDF(filePath: string, syllabusId: number): 
 /**
  * Extract course information and events from syllabus text using Gemini AI
  */
-export async function extractSyllabusInfo(syllabusText: string, syllabusId: number): Promise<ExtractedSyllabusInfo> {
+export async function extractSyllabusInfo(syllabusText: string, syllabusId: number): Promise<ProcessedSyllabusInfo> {
   try {
     const currentYear = new Date().getFullYear();
     const prompt = `
