@@ -61,7 +61,7 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
   
   // Fetch study sessions for this study plan
   const { data: studySessions } = useQuery<StudySession[]>({
-    queryKey: [`/api/study-plans/${studyPlanId}/study-sessions`],
+    queryKey: [`/api/study-plans/${studyPlanId}/sessions`],
     enabled: !!studyPlanId
   });
   
@@ -295,6 +295,19 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
       </CardHeader>
       
       <CardContent className="space-y-6">
+        <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg mb-6">
+          <div className="flex items-start gap-3">
+            <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+            <div>
+              <h4 className="font-medium text-blue-900 dark:text-blue-300">Calendar Options</h4>
+              <p className="text-sm text-blue-700 dark:text-blue-400 mt-1">
+                You can either download your study schedule as an .ICS file which works with most calendar 
+                applications, or integrate directly with your preferred calendar service.
+              </p>
+            </div>
+          </div>
+        </div>
+      
         <div>
           <h3 className="text-lg font-medium mb-2">1. Select Calendar Provider</h3>
           <RadioGroup
