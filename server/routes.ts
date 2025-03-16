@@ -16,7 +16,7 @@ import { z } from "zod";
 import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
-import { extractSyllabusInfo } from "./services/gemini";
+import { extractSyllabusInfo, extractInfoFromPDF } from "./services/gemini";
 
 // Setup multer for file uploads
 const upload = multer({ 
@@ -47,29 +47,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'No file uploaded' });
       }
       
-      // Get extracted text from request if available
-      const extractedText = req.body.textContent || 'Uploaded. Text extraction pending.';
-      
-      // Create syllabus record with the extracted text from client
+      // Create syllabus record with the uploaded status
       const syllabusData: InsertSyllabus = {
         userId: req.userId as number,
         filename: req.file.originalname,
-        textContent: extractedText,
+        textContent: 'Processing with Gemini Vision...',
         status: 'uploaded'
       };
 
       const syllabus = await storage.createSyllabus(syllabusData);
       
-      // Log successful extraction
-      if (extractedText !== 'Uploaded. Text extraction pending.') {
-        console.log(`Successfully extracted text from PDF, length: ${extractedText.length} characters`);
+      // Process the PDF file with Gemini Vision API in the background
+      // We'll inform the client the syllabus is being processed and they can check back later
+      const processAndUpdateSyllabus = async () => {
+        try {
+          console.log(`Processing uploaded PDF with Gemini Vision: ${req.file?.path}`);
+          
+          // Extract information using Gemini Vision API
+          const extractedInfo = await extractInfoFromPDF(req.file!.path, syllabus.id);
+          
+          // Process extracted text content from pages (if available)
+          let extractedText = '';
+          if (req.body.textContent && req.body.textContent.length > 0) {
+            extractedText = req.body.textContent;
+          } else {
+            // Use a placeholder if client didn't provide text content
+            extractedText = 'Analyzed directly by Gemini Vision API';
+          }
+          
+          // Update syllabus with extracted information
+          await storage.updateSyllabusInfo(syllabus.id, {
+            courseCode: extractedInfo.courseCode,
+            courseName: extractedInfo.courseName,
+            instructor: extractedInfo.instructor,
+            term: extractedInfo.term,
+            textContent: extractedText,
+            status: 'processed'
+          });
+          
+          // Create course events
+          for (const event of extractedInfo.events) {
+            await storage.createCourseEvent(event);
+          }
+          
+          console.log(`Successfully processed PDF with Gemini Vision. Found ${extractedInfo.events.length} events.`);
+        } catch (error) {
+          console.error('Error processing PDF with Gemini Vision:', error);
+          await storage.updateSyllabusInfo(syllabus.id, {
+            status: 'error',
+            textContent: `Error processing with Gemini Vision: ${error instanceof Error ? error.message : 'Unknown error'}`
+          });
+        } finally {
+          // Remove temp file after processing
+          try {
+            if (req.file?.path && fs.existsSync(req.file.path)) {
+              fs.unlinkSync(req.file.path);
+            }
+          } catch (error) {
+            console.error('Error removing temp file:', error);
+          }
+        }
+      };
+      
+      // Start background processing
+      processAndUpdateSyllabus();
+      
+      // Respond immediately to the client
+      return res.status(201).json({
+        ...syllabus,
+        message: 'Syllabus uploaded and is being processed with Gemini Vision API'
+      });
+    } catch (error) {
+      // Clean up temp file if there was an error
+      if (req.file?.path && fs.existsSync(req.file.path)) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (error) {
+          console.error('Error removing temp file:', error);
+        }
       }
       
-      // Remove temp file
-      fs.unlinkSync(req.file.path);
-      
-      return res.status(201).json(syllabus);
-    } catch (error) {
       console.error('Upload error:', error);
       return res.status(500).json({ message: 'Failed to upload and process syllabus' });
     }

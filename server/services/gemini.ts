@@ -45,6 +45,14 @@ export async function extractInfoFromPDF(filePath: string, syllabusId: number): 
     // Read the PDF file as buffer
     const fileBuffer = fs.readFileSync(filePath);
     
+    // Check file size - Gemini Vision has a limit (~4MB for base64 encoded content)
+    const fileSizeInMB = fileBuffer.length / (1024 * 1024);
+    console.log(`PDF file size: ${fileSizeInMB.toFixed(2)} MB`);
+    
+    if (fileSizeInMB > 3.5) {
+      console.warn(`PDF file is large (${fileSizeInMB.toFixed(2)} MB). Gemini Vision might not process the entire document.`);
+    }
+    
     // Convert buffer to base64
     const base64Data = fileBuffer.toString('base64');
     
@@ -56,6 +64,7 @@ export async function extractInfoFromPDF(filePath: string, syllabusId: number): 
       }
     };
     
+    const currentYear = new Date().getFullYear();
     const prompt = `
       You are a syllabus analyzer designed to extract structured information from course syllabi for students.
       
@@ -77,10 +86,13 @@ export async function extractInfoFromPDF(filePath: string, syllabusId: number): 
       
       IMPORTANT GUIDELINES:
       - Read all pages of the PDF thoroughly
+      - Look at tables, charts, and any structured information carefully
       - Identify the specific date formats used in the syllabus (MM/DD/YYYY, Month Day Year, etc.)
       - Pay special attention to sections labeled "Schedule", "Due Dates", "Important Dates", "Course Calendar", etc.
       - Be careful to distinguish between class meeting dates and assignment due dates
-      - For events where only a Month and Day are provided (without a year), infer the year based on the term/semester
+      - For events where only a Month and Day are provided (without a year), infer the year as ${currentYear} unless context suggests otherwise
+      - For large PDFs, focus on extracting the most important dates and key course information
+      - If you find the syllabus has a weekly schedule, extract key milestones as events
       
       OUTPUT FORMAT:
       Return a valid, properly formatted JSON object with the following structure:
@@ -105,7 +117,45 @@ export async function extractInfoFromPDF(filePath: string, syllabusId: number): 
     
     // Call the Gemini Vision API with the PDF
     console.log('Sending PDF to Gemini Vision for analysis...');
-    const result = await multimodalModel.generateContent([prompt, filePart]);
+    
+    let result;
+    try {
+      result = await multimodalModel.generateContent([prompt, filePart]);
+    } catch (apiError: any) {
+      console.error('Gemini Vision API error:', apiError?.message || apiError);
+      
+      // If we get an error that might be related to file size/content, try with a more focused prompt
+      if (fileSizeInMB > 1) {
+        console.log('Attempting a second approach with a more focused prompt...');
+        
+        const fallbackPrompt = `
+          Extract the key course information and important dates from this syllabus PDF.
+          
+          Return a JSON with:
+          {
+            "courseCode": "string or null",
+            "courseName": "string or null",
+            "instructor": "string or null",
+            "term": "string or null",
+            "events": [
+              {
+                "eventType": "assignment|exam|quiz|project|presentation|paper|other",
+                "title": "string",
+                "dueDate": "YYYY-MM-DD",
+                "description": "string or null"
+              }
+            ]
+          }
+          
+          Focus only on the most important information and dates.
+        `;
+        
+        result = await multimodalModel.generateContent([fallbackPrompt, filePart]);
+      } else {
+        throw apiError; // Re-throw if it's not likely a file size issue
+      }
+    }
+    
     const response = result.response;
     const text = response.text();
     
@@ -121,7 +171,16 @@ export async function extractInfoFromPDF(filePath: string, syllabusId: number): 
     const jsonText = jsonMatch[0];
     
     try {
-      const extractedData = JSON.parse(jsonText) as ExtractedSyllabusInfo;
+      // Attempt to parse the JSON, cleaning it if necessary
+      let cleanedJsonText = jsonText;
+      // Sometimes Gemini adds additional backticks around JSON, let's clean that
+      if (jsonText.startsWith('```json')) {
+        cleanedJsonText = jsonText.replace(/^```json/, '').replace(/```$/, '').trim();
+      } else if (jsonText.startsWith('```')) {
+        cleanedJsonText = jsonText.replace(/^```/, '').replace(/```$/, '').trim();
+      }
+      
+      const extractedData = JSON.parse(cleanedJsonText) as ExtractedSyllabusInfo;
       
       // Log the extracted information
       console.log(`Successfully extracted course information from PDF: 
@@ -138,13 +197,49 @@ export async function extractInfoFromPDF(filePath: string, syllabusId: number): 
       }
       
       // Format the events with syllabusId
-      const formattedEvents = extractedData.events.map(event => ({
-        ...event,
-        syllabusId,
-        dueDate: new Date(event.dueDate),
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }));
+      const formattedEvents = extractedData.events.map(event => {
+        try {
+          // Validate and fix date format if needed
+          let dueDate: Date;
+          if (typeof event.dueDate === 'string') {
+            dueDate = new Date(event.dueDate);
+            // If invalid date, try to parse with different formats
+            if (isNaN(dueDate.getTime())) {
+              // Try MM/DD/YYYY format
+              const parts = event.dueDate.split(/[\/\-\.]/);
+              if (parts.length === 3) {
+                const month = parseInt(parts[0]) - 1;
+                const day = parseInt(parts[1]);
+                const year = parts[2].length === 2 
+                  ? parseInt(parts[2]) + (parseInt(parts[2]) > 50 ? 1900 : 2000)
+                  : parseInt(parts[2]);
+                dueDate = new Date(year, month, day);
+              }
+            }
+          } else {
+            // If no date found, use current date as placeholder
+            dueDate = new Date();
+            console.warn(`No valid date found for event "${event.title}", using current date as placeholder`);
+          }
+          
+          return {
+            ...event,
+            syllabusId,
+            dueDate: isNaN(dueDate.getTime()) ? new Date() : dueDate,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          };
+        } catch (dateError) {
+          console.error(`Error processing date for event "${event.title}":`, dateError);
+          return {
+            ...event,
+            syllabusId,
+            dueDate: new Date(), // Fallback to current date if there's an error
+            createdAt: new Date(),
+            updatedAt: new Date()
+          };
+        }
+      });
       
       return {
         courseCode: extractedData.courseCode || undefined,
@@ -155,6 +250,7 @@ export async function extractInfoFromPDF(filePath: string, syllabusId: number): 
       };
     } catch (jsonError) {
       console.error('Error parsing JSON from Gemini Vision response:', jsonError);
+      console.error('Problematic JSON:', jsonText.substring(0, 200) + '...');
       return { events: [] };
     }
   } catch (error) {
