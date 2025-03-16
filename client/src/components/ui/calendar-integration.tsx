@@ -67,7 +67,7 @@ const reminderOptions = [
 ];
 
 const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarIntegrationProps) => {
-  const [selectedProvider, setSelectedProvider] = useState<string>('google');
+  const [selectedProvider, setSelectedProvider] = useState<string>('ics');
   const [showScheduleForm, setShowScheduleForm] = useState(false);
   const [icsDownloading, setIcsDownloading] = useState(false);
   const [reminderTime, setReminderTime] = useState<string>("60"); // Default: 1 hour before
@@ -304,6 +304,13 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
   };
 
   const handleIntegrate = async () => {
+    // If the user selected the ICS file option, download it
+    if (selectedProvider === 'ics') {
+      handleDownloadICS();
+      return;
+    }
+    
+    // Handle Google Calendar integration
     // If we need to show the schedule form and it's not submitted, don't proceed
     if (showScheduleForm) {
       form.handleSubmit(onSubmit)();
@@ -475,7 +482,7 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
               onClick={() => setSelectedProvider('google')}
             >
               <div className="flex items-center gap-2 mb-3">
-                <Calendar className="h-5 w-5 text-primary" />
+                <CalendarIcon className="h-5 w-5 text-primary" />
                 <h4 className="font-medium">Connect to Google Calendar</h4>
               </div>
               <p className="text-sm text-muted-foreground">
@@ -670,35 +677,40 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
       
       <CardFooter className="flex flex-col sm:flex-row gap-4">
         <Button 
-          onClick={handleDownloadICS} 
-          className="w-full sm:w-1/2"
+          onClick={onIntegrationComplete} 
+          className="w-full sm:w-1/3"
           variant="outline"
-          disabled={icsDownloading}
         >
-          {icsDownloading ? (
-            <span className="flex items-center">
-              <span className="animate-spin mr-2">⟳</span> Generating...
-            </span>
-          ) : (
-            <span className="flex items-center">
-              <Download className="mr-2 h-4 w-4" /> Download .ICS File
-            </span>
-          )}
+          <span className="flex items-center">
+            Cancel
+          </span>
         </Button>
         
         <Button 
           onClick={handleIntegrate} 
-          className="w-full sm:w-1/2"
-          disabled={integrationMutation.isPending}
+          className="w-full sm:w-2/3"
+          disabled={selectedProvider === 'ics' ? icsDownloading : integrationMutation.isPending}
         >
-          {integrationMutation.isPending ? (
-            <span className="flex items-center">
-              <span className="animate-spin mr-2">⟳</span> Integrating...
-            </span>
+          {selectedProvider === 'ics' ? (
+            icsDownloading ? (
+              <span className="flex items-center">
+                <span className="animate-spin mr-2">⟳</span> Generating...
+              </span>
+            ) : (
+              <span className="flex items-center">
+                <Download className="mr-2 h-4 w-4" /> Download Calendar File
+              </span>
+            )
           ) : (
-            <span className="flex items-center">
-              <CheckCircle2 className="mr-2 h-4 w-4" /> Add to Calendar
-            </span>
+            integrationMutation.isPending ? (
+              <span className="flex items-center">
+                <span className="animate-spin mr-2">⟳</span> Connecting...
+              </span>
+            ) : (
+              <span className="flex items-center">
+                <CalendarIcon className="mr-2 h-4 w-4" /> Sync with Google Calendar
+              </span>
+            )
           )}
         </Button>
       </CardFooter>
