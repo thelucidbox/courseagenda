@@ -259,19 +259,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
   apiRouter.post('/study-plans/:id/calendar-integration', async (req, res) => {
     try {
       const studyPlanId = Number(req.params.id);
+      const { provider } = req.body;
+      
+      if (!provider) {
+        return res.status(400).json({ message: 'Calendar provider is required' });
+      }
+      
       const studyPlan = await storage.getStudyPlan(studyPlanId);
       
       if (!studyPlan) {
         return res.status(404).json({ message: 'Study plan not found' });
       }
       
-      // In a real app, this would integrate with Google Calendar API
-      // For this demo, we'll just update the calendarIntegrated flag
+      // Get the associated syllabus for course schedule information
+      const syllabus = await storage.getSyllabus(studyPlan.syllabusId);
+      
+      if (!syllabus) {
+        return res.status(404).json({ message: 'Associated syllabus not found' });
+      }
+      
+      // Get study sessions
+      const studySessions = await storage.getStudySessions(studyPlanId);
+      
+      // In a real app, we would:
+      // 1. Use the provider to determine which calendar service to use
+      // 2. Use the study sessions and course schedule to create calendar events
+      // 3. Authenticate with the calendar service
+      // 4. Create events in the calendar
+      
+      // For this demo, we'll mark the study plan as integrated
       const updatedStudyPlan = await storage.updateStudyPlan(studyPlanId, {
         calendarIntegrated: true
       });
       
-      return res.status(200).json(updatedStudyPlan);
+      // For each study session, we would create a calendar event
+      // Here we're just simulating by adding a calendarEventId
+      for (const session of studySessions) {
+        if (!session.calendarEventId) {
+          await storage.updateStudySession(session.id, {
+            calendarEventId: `cal-${provider}-${Date.now()}-${session.id}`
+          });
+        }
+      }
+      
+      return res.status(200).json({ 
+        studyPlan: updatedStudyPlan, 
+        sessions: studySessions,
+        message: `Successfully integrated with ${provider} calendar` 
+      });
     } catch (error) {
       console.error('Error updating calendar integration:', error);
       return res.status(500).json({ message: 'Failed to update calendar integration' });

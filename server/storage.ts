@@ -98,16 +98,25 @@ export class MemStorage implements IStorage {
   // Syllabus operations
   async createSyllabus(insertSyllabus: InsertSyllabus): Promise<Syllabus> {
     const id = this.syllabusIdCounter++;
-    const syllabus: Syllabus = { 
-      ...insertSyllabus,
+    
+    // Create syllabus with proper types
+    const syllabus: Syllabus = {
       id,
-      uploadedAt: new Date(),
+      userId: insertSyllabus.userId,
+      filename: insertSyllabus.filename,
       courseCode: insertSyllabus.courseCode ?? null,
       courseName: insertSyllabus.courseName ?? null,
       instructor: insertSyllabus.instructor ?? null,
       term: insertSyllabus.term ?? null,
+      uploadedAt: new Date(),
       textContent: insertSyllabus.textContent ?? null,
-      status: insertSyllabus.status ?? "uploaded"
+      status: insertSyllabus.status ?? "uploaded",
+      // Course schedule fields with defaults
+      firstDayOfClass: insertSyllabus.firstDayOfClass ?? null,
+      lastDayOfClass: insertSyllabus.lastDayOfClass ?? null,
+      meetingDays: insertSyllabus.meetingDays ?? [],
+      meetingTimeStart: insertSyllabus.meetingTimeStart ?? null,
+      meetingTimeEnd: insertSyllabus.meetingTimeEnd ?? null
     };
     this.syllabi.set(id, syllabus);
     return syllabus;

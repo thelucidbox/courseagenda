@@ -76,6 +76,12 @@ export const insertSyllabusSchema = createInsertSchema(syllabi).pick({
   term: true,
   textContent: true,
   status: true,
+  // Course schedule fields
+  firstDayOfClass: true,
+  lastDayOfClass: true,
+  meetingDays: true,
+  meetingTimeStart: true,
+  meetingTimeEnd: true,
 });
 
 export const insertCourseEventSchema = createInsertSchema(courseEvents).pick({
