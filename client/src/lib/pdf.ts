@@ -8,15 +8,10 @@ export type PDFTextContent = {
 
 // Initialize PDF.js worker
 const initializePdfJS = async () => {
-  try {
-    // Use the dynamic import feature of pdf.js
-    const pdfjsWorker = await import('pdfjs-dist/build/pdf.worker.entry');
-    pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
-  } catch (error) {
-    console.warn('Failed to load PDF.js worker dynamically, using fake worker:', error);
-    // Fall back to the fake worker mode
-    pdfjs.GlobalWorkerOptions.workerSrc = '';
-  }
+  // Use the fake worker mode directly
+  pdfjs.GlobalWorkerOptions.workerSrc = '';
+  // This will display a warning but will work for most PDFs
+  console.log('Using PDF.js fake worker for processing');
 };
 
 // Extract text from PDF file
