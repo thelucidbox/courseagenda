@@ -41,6 +41,7 @@ export interface CalendarEvent {
   endTime: Date;
   location?: string;
   colorId?: string;
+  reminderMinutes?: number; // Minutes before event to send reminder
 }
 
 // Format study session for Google Calendar

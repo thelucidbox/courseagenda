@@ -3,12 +3,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Calendar, CheckCircle2, Info, Download, FileText } from 'lucide-react';
+import { Calendar, CheckCircle2, Info, Download, FileText, Bell } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { integrationProviders, type CalendarEvent, downloadMultiEventICSFile } from '@/lib/calendar';
 import { Syllabus, StudyPlan, StudySession, CourseEvent, courseScheduleSchema } from '@shared/schema';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -41,10 +42,27 @@ const WEEKDAYS: { value: WeekdayType; label: string }[] = [
   { value: 'sunday', label: 'Sunday' },
 ];
 
+// Reminder options for calendar events
+const reminderOptions = [
+  { value: "0", label: "No reminder" },
+  { value: "5", label: "5 minutes before" },
+  { value: "15", label: "15 minutes before" },
+  { value: "30", label: "30 minutes before" },
+  { value: "60", label: "1 hour before" },
+  { value: "120", label: "2 hours before" },
+  { value: "1440", label: "1 day before" },
+  { value: "2880", label: "2 days before" },
+  { value: "10080", label: "1 week before" },
+];
+
 const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarIntegrationProps) => {
   const [selectedProvider, setSelectedProvider] = useState<string>('google');
   const [showScheduleForm, setShowScheduleForm] = useState(false);
   const [icsDownloading, setIcsDownloading] = useState(false);
+  const [reminderTime, setReminderTime] = useState<string>("60"); // Default: 1 hour before
+  const [studySessionReminder, setStudySessionReminder] = useState<string>("30"); // Default: 30 minutes before
+  const [assignmentReminder, setAssignmentReminder] = useState<string>("1440"); // Default: 1 day before
+  const [examReminder, setExamReminder] = useState<string>("10080"); // Default: 1 week before
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
