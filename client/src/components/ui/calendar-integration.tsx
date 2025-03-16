@@ -12,10 +12,12 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from '@/components/ui/checkbox';
-import { Calendar, Info, Bell, Download } from 'lucide-react';
+import { Calendar as CalendarIcon, Info, Bell, Download, CheckCircle2 } from 'lucide-react';
 import { CalendarEvent, downloadMultiEventICSFile } from '@/lib/calendar';
 import { Syllabus, StudyPlan, StudySession, CourseEvent } from '@shared/schema';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 
 // Define the course schedule schema
 const courseScheduleSchema = z.object({
@@ -322,7 +324,7 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center">
-          <Calendar className="mr-2 h-5 w-5" />
+          <CalendarIcon className="mr-2 h-5 w-5" />
           Calendar Integration
         </CardTitle>
         <CardDescription>Add your study plan to your preferred calendar service</CardDescription>
@@ -452,29 +454,38 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
         </div>
       
         <div>
-          <h3 className="text-lg font-medium mb-2">2. Select Calendar Provider</h3>
-          <RadioGroup
-            value={selectedProvider}
-            onValueChange={setSelectedProvider}
-            className="grid grid-cols-1 gap-4 md:grid-cols-3"
-          >
-            {integrationProviders.map(provider => (
-              <div key={provider.id}>
-                <RadioGroupItem
-                  value={provider.id}
-                  id={provider.id}
-                  className="peer sr-only"
-                />
-                <Label
-                  htmlFor={provider.id}
-                  className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
-                >
-                  <provider.icon className="mb-3 h-6 w-6" />
-                  <span className="font-medium">{provider.name}</span>
-                </Label>
+          <h3 className="text-lg font-medium mb-4">2. Choose Export Option</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div 
+              className={`border rounded-lg p-5 cursor-pointer hover:border-primary transition-colors ${selectedProvider === 'ics' ? 'bg-primary/5 border-primary' : ''}`}
+              onClick={() => setSelectedProvider('ics')}
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <Download className="h-5 w-5 text-primary" />
+                <h4 className="font-medium">Download Calendar File</h4>
               </div>
-            ))}
-          </RadioGroup>
+              <p className="text-sm text-muted-foreground">
+                Export your study plan as an ICS file that you can import into any calendar app 
+                (Google Calendar, Apple Calendar, Outlook, etc.)
+              </p>
+            </div>
+            
+            <div 
+              className={`border rounded-lg p-5 cursor-pointer hover:border-primary transition-colors ${selectedProvider === 'google' ? 'bg-primary/5 border-primary' : ''}`}
+              onClick={() => setSelectedProvider('google')}
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <Calendar className="h-5 w-5 text-primary" />
+                <h4 className="font-medium">Connect to Google Calendar</h4>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Automatically sync your study plan with your Google Calendar account
+                (requires permission to access your calendar)
+              </p>
+            </div>
+          </div>
+          
+          {/* Calendar Integration Details section replaced by the card UI above */}
         </div>
 
         {showScheduleForm && (
