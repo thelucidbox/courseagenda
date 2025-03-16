@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useParams, useLocation } from 'wouter';
+import { useState, useEffect } from 'react';
+import { useParams, useLocation, Link } from 'wouter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -16,7 +16,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { addDays, format, differenceInDays, addHours } from 'date-fns';
-import { Loader2, Calendar, Book, CheckCircle, Clock } from 'lucide-react';
+import { Loader2, Calendar, Book, CheckCircle, Clock, ArrowRight } from 'lucide-react';
 import { type Syllabus, type CourseEvent, type StudyPlan, type StudySession } from '@shared/schema';
 
 const steps = [
@@ -113,7 +113,7 @@ const CreateStudyPlan = () => {
   });
   
   // Update form values when syllabus data is loaded
-  React.useEffect(() => {
+  useEffect(() => {
     if (syllabus) {
       form.setValue('title', `Study Plan for ${syllabus.courseCode || syllabus.courseName || 'Course'}`);
     }
@@ -409,9 +409,5 @@ const CreateStudyPlan = () => {
     </div>
   );
 };
-
-// Helper components
-import { Link } from 'wouter';
-import { ArrowRight } from 'lucide-react';
 
 export default CreateStudyPlan;
