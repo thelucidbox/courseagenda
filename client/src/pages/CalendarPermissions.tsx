@@ -17,7 +17,7 @@ import { apiRequest } from '@/lib/queryClient';
 import MainLayout from '@/components/layout/MainLayout';
 
 const CalendarPermissions: React.FC = () => {
-  const [_, params] = useRoute<{ id: string }>('/calendar-permissions/:id');
+  const [_, params] = useRoute<{ id?: string }>('/calendar-permissions/:id?');
   const syllabusId = params?.id ? parseInt(params.id) : null;
   const [, navigate] = useLocation();
   const { toast } = useToast();
@@ -29,11 +29,12 @@ const CalendarPermissions: React.FC = () => {
         throw new Error("No syllabus ID provided");
       }
       
-      return apiRequest({
-        url: `/api/syllabi/${syllabusId}/calendar-permissions`,
-        method: 'POST',
-        data: { provider }
-      });
+      const response = await apiRequest(
+        'POST',
+        `/api/syllabi/${syllabusId}/calendar-permissions`,
+        { provider }
+      );
+      return response.json();
     },
     onSuccess: () => {
       toast({
