@@ -63,6 +63,7 @@ const CreateStudyPlan = () => {
     mutationFn: async (data: StudyPlanValues) => {
       const response = await apiRequest('POST', '/api/study-plans', {
         syllabusId: parseInt(id),
+        userId: 1, // Hardcoded to match the server middleware which sets userId to 1
         title: data.title,
         description: data.description || '',
         calendarIntegrated: false,
