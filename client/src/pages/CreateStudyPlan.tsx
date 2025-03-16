@@ -102,7 +102,7 @@ const CreateStudyPlan = () => {
   const form = useForm<StudyPlanValues>({
     resolver: zodResolver(studyPlanSchema),
     defaultValues: {
-      title: syllabus ? `Study Plan for ${syllabus.courseCode || 'Course'}` : '',
+      title: syllabus ? `Study Plan for ${syllabus.courseName || syllabus.courseCode || 'Course'}` : '',
       description: '',
       dateRange: {
         from: new Date(),
@@ -116,7 +116,7 @@ const CreateStudyPlan = () => {
   // Update form values when syllabus data is loaded
   useEffect(() => {
     if (syllabus) {
-      form.setValue('title', `Study Plan for ${syllabus.courseCode || syllabus.courseName || 'Course'}`);
+      form.setValue('title', `Study Plan for ${syllabus.courseName || syllabus.courseCode || 'Course'}`);
     }
   }, [syllabus, form]);
 
