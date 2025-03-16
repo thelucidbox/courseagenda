@@ -51,7 +51,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const syllabusData: InsertSyllabus = {
         userId: req.userId as number,
         filename: req.file.originalname,
-        textContent: 'Processing with Gemini Vision...',
+        textContent: 'Extracting syllabus information...',
         status: 'uploaded'
       };
 
