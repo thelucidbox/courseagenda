@@ -23,9 +23,18 @@ const upload = multer({
   dest: path.join(os.tmpdir(), 'syllabus-uploads'),
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
   fileFilter: (req, file, cb) => {
-    if (file.mimetype !== 'application/pdf') {
+    // Accept any file with 'pdf' in the mimetype or with .pdf extension
+    const isPDF = 
+      file.mimetype === 'application/pdf' || 
+      file.mimetype === 'application/x-pdf' || 
+      file.mimetype === 'binary/octet-stream' || 
+      file.originalname.toLowerCase().endsWith('.pdf');
+    
+    if (!isPDF) {
       return cb(new Error('Only PDF files are allowed'));
     }
+    
+    console.log('Accepted file upload:', file.originalname, 'with mimetype:', file.mimetype);
     cb(null, true);
   }
 });
