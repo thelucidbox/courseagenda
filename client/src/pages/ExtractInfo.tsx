@@ -164,7 +164,7 @@ const ExtractInfo = () => {
               {!hasExtractedInfo && !isExtracting && (
                 <Button onClick={handleExtract} variant="outline" size="sm">
                   <ClipboardList className="mr-2 h-4 w-4" />
-                  Extract Information
+                  Extract with Gemini AI
                 </Button>
               )}
               {isExtracting && (

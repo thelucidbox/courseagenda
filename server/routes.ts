@@ -16,6 +16,7 @@ import { z } from "zod";
 import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
+import { extractSyllabusInfo } from "./services/gemini";
 
 // Setup multer for file uploads
 const upload = multer({ 
@@ -94,7 +95,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Extract info from syllabus (in a real app, this would use NLP)
+  // Extract info from syllabus using Gemini AI
   apiRouter.post('/syllabi/:id/extract', async (req, res) => {
     try {
       const id = Number(req.params.id);
@@ -104,45 +105,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'Syllabus not found' });
       }
       
-      // Update syllabus with extracted course information
-      // This is a simplified extraction that would be more sophisticated in production
+      // Get the syllabus text content
       const textContent = syllabus.textContent || '';
       
-      // Simple regex extraction for course information
-      // In a real app, use NLP for more accurate extraction
-      const courseCodeMatch = textContent.match(/(?:Course|Class) (?:Code|Number|ID)?\s*:?\s*([A-Z]{2,4}\s*\d{3,4}[A-Z0-9]*)/i);
-      const courseNameMatch = textContent.match(/(?:Course|Class) (?:Title|Name)\s*:?\s*([^\n]+)/i);
-      const instructorMatch = textContent.match(/(?:Professor|Instructor|Lecturer|Teacher|Faculty)\s*:?\s*([^\n]+)/i);
-      const termMatch = textContent.match(/(?:Term|Semester|Quarter)\s*:?\s*([^\n]+)/i);
-  
-      // Extract dates for assignments, exams, etc.
-      const assignments = extractEvents(textContent, 'assignment');
-      const exams = extractEvents(textContent, 'exam');
-      const quizzes = extractEvents(textContent, 'quiz');
+      // Use Gemini AI to extract information from the syllabus
+      console.log('Extracting information from syllabus using Gemini AI...');
+      const extractedInfo = await extractSyllabusInfo(textContent, id);
       
-      // Update syllabus with extracted info
+      // Update syllabus with extracted course information
       const updatedSyllabus = await storage.updateSyllabusInfo(id, {
-        courseCode: courseCodeMatch?.[1]?.trim(),
-        courseName: courseNameMatch?.[1]?.trim(),
-        instructor: instructorMatch?.[1]?.trim(),
-        term: termMatch?.[1]?.trim(),
+        courseCode: extractedInfo.courseCode,
+        courseName: extractedInfo.courseName,
+        instructor: extractedInfo.instructor,
+        term: extractedInfo.term,
         status: 'processed'
       });
       
-      // Create course events for each extracted assignment, exam, quiz
-      const allEvents = [...assignments, ...exams, ...quizzes];
+      // Create course events
       const createdEvents = [];
       
-      for (const event of allEvents) {
-        const eventData: InsertCourseEvent = {
-          syllabusId: id,
-          title: event.title,
-          description: event.description,
-          eventType: event.type,
-          dueDate: event.date
-        };
-        
-        const createdEvent = await storage.createCourseEvent(eventData);
+      for (const event of extractedInfo.events) {
+        const createdEvent = await storage.createCourseEvent(event);
         createdEvents.push(createdEvent);
       }
       
@@ -152,7 +135,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error('Extraction error:', error);
-      return res.status(500).json({ message: 'Failed to extract information from syllabus' });
+      return res.status(500).json({ message: 'Failed to extract information from syllabus using Gemini AI' });
     }
   });
 
