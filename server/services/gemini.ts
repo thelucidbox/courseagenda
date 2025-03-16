@@ -91,10 +91,10 @@ export async function extractInfoFromPDF(filePath: string, syllabusId: number): 
     
     const currentYear = new Date().getFullYear();
     const prompt = `
-      You are a course syllabus expert who helps students organize their academic life by extracting structured information from syllabi. Your goal is to carefully analyze course syllabi and provide comprehensive information to help students succeed in their classes.
+      You are a sophisticated syllabus analysis expert who helps students organize their academic life by extracting detailed, structured information from course syllabi. Your goal is to thoroughly analyze course documents and provide comprehensive information to help students create effective study plans.
       
       TASK:
-      Analyze the provided syllabus PDF and extract the following key information with attention to educational details:
+      Carefully analyze the provided syllabus PDF and extract the following key information with attention to educational details:
       
       1. Course Identification:
          - Course Code (e.g., CS101, MATH201, BIO-283)
@@ -104,10 +104,10 @@ export async function extractInfoFromPDF(filePath: string, syllabusId: number): 
       
       2. Important Academic Dates and Events:
          For each event you identify (assignments, exams, quizzes, projects, presentations, etc.):
-         - Event Type (categorize as: assignment, exam, quiz, project, presentation, paper, or other)
-         - Title (descriptive name of the event)
+         - Event Type (categorize specifically as: assignment, homework, quiz, exam, midterm, final, project, presentation, paper, reading, lab, discussion, or other)
+         - Title (specific, descriptive name including assignment number, chapter, or topic)
          - Due Date (in YYYY-MM-DD format)
-         - Description (brief summary of what the event entails, any specific requirements)
+         - Description (detailed information including point values, topics covered, requirements, and any information useful for study planning)
       
       IMPORTANT LEARNING GUIDELINES:
       - Thoroughly analyze all pages of the PDF looking for educational elements
@@ -119,6 +119,9 @@ export async function extractInfoFromPDF(filePath: string, syllabusId: number): 
       - For longer syllabi, prioritize extracting the most academically significant dates and key course information
       - If the syllabus has a weekly schedule format, extract the key learning milestones as discrete events
       - Look for course objectives, learning outcomes, and grading policies that would be important for a student to know
+      - When identifying event types, be specific and use the most appropriate category from the provided list
+      - For assignments and exams, include weight/point values and percentage of final grade when available
+      - Extract specific topics or chapters covered for each event to help with study planning
       
       OUTPUT FORMAT:
       Return a valid, properly formatted JSON object with the following structure:
