@@ -85,7 +85,12 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.userIdCounter++;
-    const user: User = { ...insertUser, id };
+    const user: User = { 
+      ...insertUser, 
+      id,
+      displayName: insertUser.displayName ?? null,
+      initials: insertUser.initials ?? null 
+    };
     this.users.set(id, user);
     return user;
   }
@@ -96,7 +101,13 @@ export class MemStorage implements IStorage {
     const syllabus: Syllabus = { 
       ...insertSyllabus,
       id,
-      uploadedAt: new Date()
+      uploadedAt: new Date(),
+      courseCode: insertSyllabus.courseCode ?? null,
+      courseName: insertSyllabus.courseName ?? null,
+      instructor: insertSyllabus.instructor ?? null,
+      term: insertSyllabus.term ?? null,
+      textContent: insertSyllabus.textContent ?? null,
+      status: insertSyllabus.status ?? "uploaded"
     };
     this.syllabi.set(id, syllabus);
     return syllabus;
@@ -136,7 +147,8 @@ export class MemStorage implements IStorage {
     const event: CourseEvent = {
       ...insertEvent,
       id,
-      createdAt: new Date()
+      createdAt: new Date(),
+      description: insertEvent.description ?? null
     };
     this.courseEvents.set(id, event);
     return event;
@@ -154,7 +166,9 @@ export class MemStorage implements IStorage {
     const plan: StudyPlan = {
       ...insertPlan,
       id,
-      createdAt: new Date()
+      createdAt: new Date(),
+      description: insertPlan.description ?? null,
+      calendarIntegrated: insertPlan.calendarIntegrated ?? null
     };
     this.studyPlans.set(id, plan);
     return plan;
@@ -190,7 +204,9 @@ export class MemStorage implements IStorage {
     const id = this.studySessionIdCounter++;
     const session: StudySession = {
       ...insertSession,
-      id
+      id,
+      description: insertSession.description ?? null,
+      calendarEventId: insertSession.calendarEventId ?? null
     };
     this.studySessions.set(id, session);
     return session;
