@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import * as pdfjsLib from 'pdfjs-dist';
 import { Document, Page } from 'react-pdf';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
-// Import the central PDF worker configuration
+// Import the central PDF worker configuration 
 // This ensures the PDF.js worker is properly set up before trying to use the library
 import pdfjs from '@/lib/pdf-worker-config';
 

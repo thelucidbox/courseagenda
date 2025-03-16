@@ -5,9 +5,13 @@
 
 import { pdfjs } from 'react-pdf';
 
+// Get the correct version that matches what we have installed
+// Important: This must match the version we installed with npm
+const PDF_VERSION = '3.11.174';
+
 // Use the CDN version of the PDF.js worker
 // This ensures we have a reliable worker file from the official source
-const CDN_URL = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+const CDN_URL = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDF_VERSION}/build/pdf.worker.min.js`;
 
 // Set the worker source to the CDN version
 console.log('Setting PDF.js worker source to CDN URL:', CDN_URL);
@@ -19,33 +23,9 @@ console.log('PDF.js worker configuration initialized');
 // Disable worker-related warnings
 const originalConsoleError = console.error;
 console.error = function(msg, ...args) {
-  // Suppress PDF.js worker-related errors
-  if (
-    (typeof msg === 'string' && (
-      msg.includes('PDF.js') || 
-      msg.includes('worker') || 
-      msg.includes('GlobalWorkerOptions')
-    )) || 
-    args.some(arg => arg?.message?.includes?.('worker'))
-  ) {
-    console.log('PDF.js worker message suppressed');
-    return;
-  }
+  // Don't suppress errors during development - better to see the actual errors
   return originalConsoleError.call(console, msg, ...args);
 };
 
-// Handle fallback if the CDN worker fails to load
-window.addEventListener('error', function(event) {
-  if (
-    event.message?.includes('worker') || 
-    event.filename?.includes('pdf') || 
-    event.error?.stack?.includes('pdf')
-  ) {
-    console.log('PDF worker error detected, using fallback mode');
-    // Try a different CDN as fallback
-    pdfjs.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
-    console.log('Switched to fallback PDF.js worker URL');
-  }
-}, true);
-
+// Export the correctly configured PDF.js instance
 export default pdfjs;
