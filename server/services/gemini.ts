@@ -91,37 +91,63 @@ export async function extractInfoFromPDF(filePath: string, syllabusId: number): 
     
     const currentYear = new Date().getFullYear();
     const prompt = `
-      You are a sophisticated syllabus analysis expert who helps students organize their academic life by extracting detailed, structured information from course syllabi. Your goal is to thoroughly analyze course documents and provide comprehensive information to help students create effective study plans.
-      
-      TASK:
-      Carefully analyze the provided syllabus PDF and extract the following key information with attention to educational details:
-      
-      1. Course Identification:
-         - Course Code (e.g., CS101, MATH201, BIO-283)
-         - Course Name/Title (full course name)
-         - Instructor Name (including title if available)
-         - Term/Semester (e.g., Fall 2023, Spring 2024, Summer 2024)
-      
-      2. Important Academic Dates and Events:
-         For each event you identify (assignments, exams, quizzes, projects, presentations, etc.):
-         - Event Type (categorize specifically as: assignment, homework, quiz, exam, midterm, final, project, presentation, paper, reading, lab, discussion, or other)
-         - Title (specific, descriptive name including assignment number, chapter, or topic)
-         - Due Date (in YYYY-MM-DD format)
-         - Description (detailed information including point values, topics covered, requirements, and any information useful for study planning)
-      
-      IMPORTANT LEARNING GUIDELINES:
-      - Thoroughly analyze all pages of the PDF looking for educational elements
-      - Pay careful attention to tables, charts, and any structured information that contains learning objectives
-      - Recognize multiple date formats (MM/DD/YYYY, Month Day Year, etc.) that might be used in academic contexts
-      - Focus on sections labeled "Schedule", "Due Dates", "Important Dates", "Course Calendar", "Learning Outcomes", etc.
-      - Differentiate between class meeting dates and assignment due dates to provide accurate information
-      - For academic events where only Month and Day are provided (without year), infer the year as ${currentYear} unless context suggests otherwise
-      - For longer syllabi, prioritize extracting the most academically significant dates and key course information
-      - If the syllabus has a weekly schedule format, extract the key learning milestones as discrete events
-      - Look for course objectives, learning outcomes, and grading policies that would be important for a student to know
-      - When identifying event types, be specific and use the most appropriate category from the provided list
-      - For assignments and exams, include weight/point values and percentage of final grade when available
-      - Extract specific topics or chapters covered for each event to help with study planning
+      You are a specialized academic syllabus analysis system for a cross-platform study planning application. Your primary function is to extract comprehensive and structured information from course syllabi PDFs that will be used to generate personalized study plans and calendar integrations.
+
+      When analyzing each syllabus, thoroughly identify and extract the following key information:
+
+      1. COURSE METADATA:
+         - Course title, code, and section number
+         - Instructor name, contact information, and office hours
+         - Teaching assistant details (if present)
+         - Course meeting times and locations (including both in-person and virtual options)
+         - Term dates (start and end of semester/quarter)
+         - Department and school/university name
+         - Course website, online platform, or learning management system URLs
+         - Required and recommended textbooks or materials with full citations
+
+      2. CRITICAL DATES (WITH PRECISE DATE FORMATTING):
+         - Extract ALL deadlines with their exact dates (MM/DD/YYYY)
+         - If only day/month are provided without year, intelligently infer the most likely year based on term dates
+         - For recurring events (e.g., "weekly quizzes every Friday"), generate the complete series of dates
+         - Categorize dates by type: assignment due dates, exam dates, project deadlines, presentation dates
+         - Identify course holidays, breaks, or days with no class
+         - Note any conditional or tentative dates, flagging them accordingly
+         - Extract add/drop deadlines and other administrative dates
+
+      3. ASSIGNMENT DETAILS:
+         - Categorize each assignment (homework, quiz, exam, project, paper, presentation, participation)
+         - Extract point values or percentage weights for each assignment
+         - Calculate cumulative grade impact for each assignment category
+         - Identify assignment descriptions, requirements, and submission instructions
+         - Note any prerequisites or dependencies between assignments
+         - Extract grading criteria or rubrics when available
+         - Identify estimated time commitment for major assignments when mentioned
+         - Note any group/collaborative vs. individual work specifications
+
+      4. COURSE CONTENT STRUCTURE:
+         - Identify the full sequence of lecture topics with their corresponding dates
+         - Extract reading assignments with source materials and page numbers
+         - Map topics to their relevant assignments and assessments
+         - Identify key concepts, learning objectives, and expected outcomes
+         - Recognize module or unit structures that group related topics
+         - Identify cumulative vs. non-cumulative exam coverage
+         - Note any prerequisite knowledge or skills mentioned
+
+      5. POLICY INFORMATION:
+         - Extract attendance policies and requirements
+         - Identify late submission and make-up work policies
+         - Note any technology requirements or resources needed
+         - Extract academic integrity policies and consequences
+         - Identify accessibility/accommodations information
+         - Extract communication policies and preferred contact methods
+         - Note any specific study resource recommendations (tutoring, study groups, etc.)
+
+      6. STUDY PLANNING INSIGHTS:
+         - Identify high-stakes assignments or exams (by weight or explicit statement)
+         - Recognize stated difficulty levels for topics or assignments when mentioned
+         - Detect sequential topics that build on each other
+         - Identify explicit study recommendations or tips from the instructor
+         - Note review session dates or office hours specifically for exam preparation
       
       OUTPUT FORMAT:
       Return a valid, properly formatted JSON object with the following structure:
@@ -132,7 +158,7 @@ export async function extractInfoFromPDF(filePath: string, syllabusId: number): 
         "term": "string or null",
         "events": [
           {
-            "eventType": "assignment|exam|quiz|project|presentation|paper|other",
+            "eventType": "assignment|homework|quiz|exam|midterm|final|project|presentation|paper|reading|lab|discussion|other",
             "title": "string",
             "dueDate": "YYYY-MM-DD",
             "description": "string or null"
@@ -168,7 +194,7 @@ export async function extractInfoFromPDF(filePath: string, syllabusId: number): 
             "term": "string or null",
             "events": [
               {
-                "eventType": "assignment|exam|quiz|project|presentation|paper|other",
+                "eventType": "assignment|homework|quiz|exam|midterm|final|project|presentation|paper|reading|lab|discussion|other",
                 "title": "string",
                 "dueDate": "YYYY-MM-DD",
                 "description": "string or null"
@@ -177,6 +203,8 @@ export async function extractInfoFromPDF(filePath: string, syllabusId: number): 
           }
           
           Focus only on the most important information and dates.
+          Be specific with event types, using the most appropriate category from the list above.
+          Include as much detail as possible in the description field, including point values, requirements, and topics covered.
         `;
         
         result = await multimodalModel.generateContent([fallbackPrompt, filePart]);
@@ -306,33 +334,63 @@ export async function extractSyllabusInfo(syllabusText: string, syllabusId: numb
   try {
     const currentYear = new Date().getFullYear();
     const prompt = `
-      You are a course syllabus expert who helps students organize their academic life by extracting structured information from syllabi. Your goal is to carefully analyze course syllabi text and provide comprehensive information to help students succeed in their classes.
-      
-      TASK:
-      Analyze the provided syllabus text and extract the following key information with attention to educational details:
-      
-      1. Course Identification:
-         - Course Code (e.g., CS101, MATH201, BIO-283)
-         - Course Name/Title (full course name)
-         - Instructor Name (including title if available)
-         - Term/Semester (e.g., Fall 2023, Spring 2024, Summer 2024)
-      
-      2. Important Academic Dates and Events:
-         For each event you identify (assignments, exams, quizzes, projects, presentations, etc.):
-         - Event Type (categorize as: assignment, exam, quiz, project, presentation, paper, or other)
-         - Title (descriptive name of the event)
-         - Due Date (in YYYY-MM-DD format)
-         - Description (brief summary of what the event entails, any specific requirements)
-      
-      IMPORTANT LEARNING GUIDELINES:
-      - Thoroughly analyze all text looking for educational elements
-      - Pay careful attention to recurring patterns that might indicate assignments or graded work
-      - Recognize multiple date formats (MM/DD/YYYY, Month Day Year, etc.) that might be used in academic contexts
-      - Focus on sections labeled "Schedule", "Due Dates", "Important Dates", "Course Calendar", "Learning Outcomes", etc.
-      - Differentiate between class meeting dates and assignment due dates to provide accurate information
-      - For academic events where only Month and Day are provided (without year), infer the year as ${currentYear} unless context suggests otherwise
-      - Look for course objectives, learning outcomes, and grading policies that would be important for a student to know
-      - Pay attention to formatting cues like bold text, headings, or lists that may indicate important dates
+      You are a specialized academic syllabus analysis system for a cross-platform study planning application. Your primary function is to extract comprehensive and structured information from course syllabi PDFs that will be used to generate personalized study plans and calendar integrations.
+
+      When analyzing each syllabus, thoroughly identify and extract the following key information:
+
+      1. COURSE METADATA:
+         - Course title, code, and section number
+         - Instructor name, contact information, and office hours
+         - Teaching assistant details (if present)
+         - Course meeting times and locations (including both in-person and virtual options)
+         - Term dates (start and end of semester/quarter)
+         - Department and school/university name
+         - Course website, online platform, or learning management system URLs
+         - Required and recommended textbooks or materials with full citations
+
+      2. CRITICAL DATES (WITH PRECISE DATE FORMATTING):
+         - Extract ALL deadlines with their exact dates (MM/DD/YYYY)
+         - If only day/month are provided without year, intelligently infer the most likely year based on term dates
+         - For recurring events (e.g., "weekly quizzes every Friday"), generate the complete series of dates
+         - Categorize dates by type: assignment due dates, exam dates, project deadlines, presentation dates
+         - Identify course holidays, breaks, or days with no class
+         - Note any conditional or tentative dates, flagging them accordingly
+         - Extract add/drop deadlines and other administrative dates
+
+      3. ASSIGNMENT DETAILS:
+         - Categorize each assignment (homework, quiz, exam, project, paper, presentation, participation)
+         - Extract point values or percentage weights for each assignment
+         - Calculate cumulative grade impact for each assignment category
+         - Identify assignment descriptions, requirements, and submission instructions
+         - Note any prerequisites or dependencies between assignments
+         - Extract grading criteria or rubrics when available
+         - Identify estimated time commitment for major assignments when mentioned
+         - Note any group/collaborative vs. individual work specifications
+
+      4. COURSE CONTENT STRUCTURE:
+         - Identify the full sequence of lecture topics with their corresponding dates
+         - Extract reading assignments with source materials and page numbers
+         - Map topics to their relevant assignments and assessments
+         - Identify key concepts, learning objectives, and expected outcomes
+         - Recognize module or unit structures that group related topics
+         - Identify cumulative vs. non-cumulative exam coverage
+         - Note any prerequisite knowledge or skills mentioned
+
+      5. POLICY INFORMATION:
+         - Extract attendance policies and requirements
+         - Identify late submission and make-up work policies
+         - Note any technology requirements or resources needed
+         - Extract academic integrity policies and consequences
+         - Identify accessibility/accommodations information
+         - Extract communication policies and preferred contact methods
+         - Note any specific study resource recommendations (tutoring, study groups, etc.)
+
+      6. STUDY PLANNING INSIGHTS:
+         - Identify high-stakes assignments or exams (by weight or explicit statement)
+         - Recognize stated difficulty levels for topics or assignments when mentioned
+         - Detect sequential topics that build on each other
+         - Identify explicit study recommendations or tips from the instructor
+         - Note review session dates or office hours specifically for exam preparation
       
       OUTPUT FORMAT:
       Return a valid, properly formatted JSON object with the following structure:
@@ -343,7 +401,7 @@ export async function extractSyllabusInfo(syllabusText: string, syllabusId: numb
         "term": "string or null",
         "events": [
           {
-            "eventType": "assignment|exam|quiz|project|presentation|paper|other",
+            "eventType": "assignment|homework|quiz|exam|midterm|final|project|presentation|paper|reading|lab|discussion|other",
             "title": "string",
             "dueDate": "YYYY-MM-DD",
             "description": "string or null"
