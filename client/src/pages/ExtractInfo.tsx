@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2, ArrowRight, Edit2, Calendar, ClipboardList, AlertTriangle } from 'lucide-react';
+import { Loader2, ArrowRight, Edit2, Calendar, ClipboardList, AlertTriangle, FileText, FolderOpen, ClipboardCheck, CheckSquare } from 'lucide-react';
 import { type Syllabus, type CourseEvent } from '@shared/schema';
 import { format } from 'date-fns';
 
@@ -142,9 +142,18 @@ const ExtractInfo = () => {
   };
 
   // Group events by type
-  const assignments = events?.filter(event => event.eventType === 'assignment') || [];
+  const assignments = events?.filter(event => 
+    event.eventType === 'assignment' || event.eventType === 'project' || event.eventType === 'paper'
+  ) || [];
   const exams = events?.filter(event => event.eventType === 'exam') || [];
   const quizzes = events?.filter(event => event.eventType === 'quiz') || [];
+  const otherEvents = events?.filter(event => 
+    event.eventType !== 'assignment' && 
+    event.eventType !== 'project' && 
+    event.eventType !== 'paper' && 
+    event.eventType !== 'exam' && 
+    event.eventType !== 'quiz'
+  ) || [];
 
   const isLoading = isLoadingSyllabus || isLoadingEvents;
   const isExtracting = extractMutation.isPending;
@@ -273,6 +282,20 @@ const ExtractInfo = () => {
                 <TabsContent value="course-schedule">
                   {hasEvents ? (
                     <div className="space-y-6">
+                      <div className="flex justify-between items-center">
+                        <h3 className="font-semibold text-base">Events extracted by Gemini AI</h3>
+                        <div className="flex items-center text-xs text-gray-500">
+                          <span>Powered by</span>
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 312 100" className="ml-2 h-4">
+                            <path d="M60.4 50c0-8.4-4.6-15.9-11.5-19.9L30.2 77.8c7 3.9 15.5 3.8 22.3-.3 4.8-2.9 7.9-8.3 7.9-14.3V50z" fill="#FF4A4A"/>
+                            <path d="M18.7 50v13.2c0 6 3.1 11.4 7.9 14.3l18.7-47.6C38.1 26 30.3 26 23.4 29.8c-3 1.9-4.7 5.3-4.7 8.7V50z" fill="#FFAD47"/>
+                            <path d="M18.7 38.5c0-3.4 1.8-6.8 4.7-8.7l18.7 47.6c7.1-4.2 11.6-11.7 11.6-20.1v-7.5L30.2 22.1c-7-3.9-15.5-3.8-22.3.3-4.8 2.9-7.9 8.3-7.9 14.3V50h18.7V38.5z" fill="#0066D9"/>
+                            <path d="M11.5 50H0v11.5c0 6 3.1 11.4 7.9 14.3 4.7 2.8 10.3 3.1 15.1.9l-11.5-26.7z" fill="#00ACF5"/>
+                            <path d="M82.52 54.53c0-11.7 8.6-20.2 19.2-20.2 5.8 0 10.3 2.1 13.4 5.8l-4.7 4.8c-2.1-2.5-5.1-4-8.6-4-6.7 0-11.7 5.7-11.7 13.4v.3c0 7.8 5 13.5 11.7 13.5 3.8 0 6.8-1.5 9-4.2l4.5 4.5c-3.3 4-7.7 6.2-13.7 6.2-10.5 0-19.1-8.6-19.1-20zm52.64-.09c0-11.6 8.2-20.2 19.7-20.2 11.5 0 19.7 8.5 19.7 20v.2c0 11.6-8.2 20.1-19.8 20.1-11.5 0-19.6-8.5-19.6-20v-.1zm31.9 0c0-7.8-5.1-13.5-12.2-13.5-7.2 0-12.1 5.7-12.1 13.4v.1c0 7.7 5 13.5 12.2 13.5 7.1 0 12.1-5.7 12.1-13.5zm18.25.1c0-11.7 8.2-20.2 19.4-20.2 7 0 11.2 2.4 14.7 5.8l-4.8 5.2c-2.9-2.7-5.8-4.4-10-4.4-6.6 0-11.6 5.7-11.6 13.4v.2c0 7.7 5 13.6 12.1 13.6 3.1 0 6-1 8-2.8v-5.5H204v-6.3h14.9v15c-3.5 3-8.5 5.4-15.2 5.4-11.7 0-19.4-8.3-19.4-20.3v-.1zm36.31-19.7h7.5v39.4h-7.5zm11.85 0h25.9v6.7h-18.5v9.6h16.6v6.7h-16.6v16.4h-7.4zm45.27-.5c7.3 0 11.8 3.5 11.8 9.8v.1c0 5.2-3.1 8-7.8 9.2l8.9 20.8h-8.3l-8-19.1h-6.9v19.1h-7.5V34.33h17.8zm-.6 14.3c4 0 6.6-1.9 6.6-5.3v-.1c0-3.5-2.5-5.3-6.6-5.3h-9.7v10.7h9.7z" fill="#000"/>
+                          </svg>
+                        </div>
+                      </div>
+                      
                       {assignments.length > 0 && (
                         <div>
                           <h3 className="font-medium text-lg mb-2">Assignments</h3>
@@ -305,6 +328,17 @@ const ExtractInfo = () => {
                           </div>
                         </div>
                       )}
+                      
+                      {otherEvents.length > 0 && (
+                        <div>
+                          <h3 className="font-medium text-lg mb-2">Other Events</h3>
+                          <div className="space-y-2">
+                            {otherEvents.map(event => (
+                              <EventCard key={event.id} event={event} />
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center py-8 text-center">
@@ -316,6 +350,16 @@ const ExtractInfo = () => {
                       <Button onClick={handleExtract} variant="outline" className="mt-4">
                         Try Extracting Again
                       </Button>
+                      <div className="mt-6 flex items-center text-xs text-gray-500">
+                        <span>Powered by</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 312 100" className="ml-2 h-4">
+                          <path d="M60.4 50c0-8.4-4.6-15.9-11.5-19.9L30.2 77.8c7 3.9 15.5 3.8 22.3-.3 4.8-2.9 7.9-8.3 7.9-14.3V50z" fill="#FF4A4A"/>
+                          <path d="M18.7 50v13.2c0 6 3.1 11.4 7.9 14.3l18.7-47.6C38.1 26 30.3 26 23.4 29.8c-3 1.9-4.7 5.3-4.7 8.7V50z" fill="#FFAD47"/>
+                          <path d="M18.7 38.5c0-3.4 1.8-6.8 4.7-8.7l18.7 47.6c7.1-4.2 11.6-11.7 11.6-20.1v-7.5L30.2 22.1c-7-3.9-15.5-3.8-22.3.3-4.8 2.9-7.9 8.3-7.9 14.3V50h18.7V38.5z" fill="#0066D9"/>
+                          <path d="M11.5 50H0v11.5c0 6 3.1 11.4 7.9 14.3 4.7 2.8 10.3 3.1 15.1.9l-11.5-26.7z" fill="#00ACF5"/>
+                          <path d="M82.52 54.53c0-11.7 8.6-20.2 19.2-20.2 5.8 0 10.3 2.1 13.4 5.8l-4.7 4.8c-2.1-2.5-5.1-4-8.6-4-6.7 0-11.7 5.7-11.7 13.4v.3c0 7.8 5 13.5 11.7 13.5 3.8 0 6.8-1.5 9-4.2l4.5 4.5c-3.3 4-7.7 6.2-13.7 6.2-10.5 0-19.1-8.6-19.1-20zm52.64-.09c0-11.6 8.2-20.2 19.7-20.2 11.5 0 19.7 8.5 19.7 20v.2c0 11.6-8.2 20.1-19.8 20.1-11.5 0-19.6-8.5-19.6-20v-.1zm31.9 0c0-7.8-5.1-13.5-12.2-13.5-7.2 0-12.1 5.7-12.1 13.4v.1c0 7.7 5 13.5 12.2 13.5 7.1 0 12.1-5.7 12.1-13.5zm18.25.1c0-11.7 8.2-20.2 19.4-20.2 7 0 11.2 2.4 14.7 5.8l-4.8 5.2c-2.9-2.7-5.8-4.4-10-4.4-6.6 0-11.6 5.7-11.6 13.4v.2c0 7.7 5 13.6 12.1 13.6 3.1 0 6-1 8-2.8v-5.5H204v-6.3h14.9v15c-3.5 3-8.5 5.4-15.2 5.4-11.7 0-19.4-8.3-19.4-20.3v-.1zm36.31-19.7h7.5v39.4h-7.5zm11.85 0h25.9v6.7h-18.5v9.6h16.6v6.7h-16.6v16.4h-7.4zm45.27-.5c7.3 0 11.8 3.5 11.8 9.8v.1c0 5.2-3.1 8-7.8 9.2l8.9 20.8h-8.3l-8-19.1h-6.9v19.1h-7.5V34.33h17.8zm-.6 14.3c4 0 6.6-1.9 6.6-5.3v-.1c0-3.5-2.5-5.3-6.6-5.3h-9.7v10.7h9.7z" fill="#000"/>
+                        </svg>
+                      </div>
                     </div>
                   )}
                 </TabsContent>
@@ -340,12 +384,39 @@ const ExtractInfo = () => {
 
 // Helper component for displaying course events
 const EventCard = ({ event }: { event: CourseEvent }) => {
+  // Get the appropriate icon and color based on event type
+  const getEventTypeInfo = (type: string) => {
+    switch (type.toLowerCase()) {
+      case 'assignment':
+        return { icon: <FileText className="h-4 w-4" />, color: 'bg-blue-100 text-blue-800' };
+      case 'project':
+        return { icon: <FolderOpen className="h-4 w-4" />, color: 'bg-indigo-100 text-indigo-800' };
+      case 'paper':
+        return { icon: <FileText className="h-4 w-4" />, color: 'bg-cyan-100 text-cyan-800' };
+      case 'exam':
+        return { icon: <ClipboardCheck className="h-4 w-4" />, color: 'bg-red-100 text-red-800' };
+      case 'quiz':
+        return { icon: <CheckSquare className="h-4 w-4" />, color: 'bg-amber-100 text-amber-800' };
+      default:
+        return { icon: <Calendar className="h-4 w-4" />, color: 'bg-gray-100 text-gray-800' };
+    }
+  };
+
+  const { icon, color } = getEventTypeInfo(event.eventType);
+  const formattedEventType = event.eventType.charAt(0).toUpperCase() + event.eventType.slice(1);
+
   return (
     <Card>
       <CardContent className="p-4">
         <div className="flex justify-between items-start">
           <div>
-            <h4 className="font-medium">{event.title}</h4>
+            <div className="flex items-center gap-2 mb-1">
+              <h4 className="font-medium">{event.title}</h4>
+              <span className={`text-xs px-2 py-0.5 rounded-full inline-flex items-center ${color}`}>
+                {icon}
+                <span className="ml-1">{formattedEventType}</span>
+              </span>
+            </div>
             {event.description && (
               <p className="text-sm text-gray-500">{event.description}</p>
             )}
