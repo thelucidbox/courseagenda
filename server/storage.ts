@@ -116,7 +116,10 @@ export class MemStorage implements IStorage {
       lastDayOfClass: insertSyllabus.lastDayOfClass ?? null,
       meetingDays: insertSyllabus.meetingDays ?? [],
       meetingTimeStart: insertSyllabus.meetingTimeStart ?? null,
-      meetingTimeEnd: insertSyllabus.meetingTimeEnd ?? null
+      meetingTimeEnd: insertSyllabus.meetingTimeEnd ?? null,
+      // Calendar integration fields
+      calendarProvider: insertSyllabus.calendarProvider ?? null,
+      calendarIntegrated: insertSyllabus.calendarIntegrated ?? false
     };
     this.syllabi.set(id, syllabus);
     return syllabus;

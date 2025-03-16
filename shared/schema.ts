@@ -85,6 +85,9 @@ export const insertSyllabusSchema = createInsertSchema(syllabi).pick({
   meetingDays: true,
   meetingTimeStart: true,
   meetingTimeEnd: true,
+  // Calendar integration fields
+  calendarProvider: true,
+  calendarIntegrated: true,
 });
 
 export const insertCourseEventSchema = createInsertSchema(courseEvents).pick({

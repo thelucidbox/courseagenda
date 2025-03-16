@@ -49,8 +49,8 @@ const UploadSyllabus = () => {
         description: 'Your syllabus has been uploaded successfully.',
       });
       
-      // Navigate to the extraction page
-      navigate(`/extract/${data.id}`);
+      // Navigate to the calendar permissions page first
+      navigate(`/calendar-permissions/${data.id}`);
     },
     onError: (error) => {
       toast({

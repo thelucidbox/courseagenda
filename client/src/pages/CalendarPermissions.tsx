@@ -1,152 +1,155 @@
-import { useState } from 'react';
-import { useParams, useLocation } from 'wouter';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
-import ProgressSteps from '@/components/ui/progress-steps';
-import { integrationProviders } from '@/lib/calendar';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { useLocation, useRoute } from 'wouter';
+import { useMutation } from '@tanstack/react-query';
+import { 
+  Card, 
+  CardHeader, 
+  CardContent, 
+  CardFooter, 
+  CardTitle, 
+  CardDescription 
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import { Info, ArrowRight, Calendar } from 'lucide-react';
-import { type Syllabus } from '@shared/schema';
+import { useToast } from '@/hooks/use-toast';
+import { Separator } from '@/components/ui/separator';
+import { integrationProviders, CalendarProvider } from '@/lib/calendar';
+import { apiRequest } from '@/lib/queryClient';
+import MainLayout from '@/components/layout/MainLayout';
 
-const steps = [
-  { label: 'Upload Syllabus', status: 'completed' as const },
-  { label: 'Calendar Permissions', status: 'current' as const },
-  { label: 'Extract Information', status: 'upcoming' as const },
-  { label: 'Create Study Plan', status: 'upcoming' as const }
-];
-
-const CalendarPermissions = () => {
-  const { id } = useParams<{ id: string }>();
+const CalendarPermissions: React.FC = () => {
+  const [_, params] = useRoute<{ id: string }>('/calendar-permissions/:id');
+  const syllabusId = params?.id ? parseInt(params.id) : null;
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [selectedProvider, setSelectedProvider] = useState<string>('google');
+  const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
 
-  // Fetch syllabus data
-  const { data: syllabus, isLoading } = useQuery<Syllabus>({
-    queryKey: [`/api/syllabi/${id}`],
-  });
-
-  const calendarPermissionMutation = useMutation({
-    mutationFn: async () => {
-      // Here we would normally request calendar permission from the selected provider
-      // For now, we'll just update the syllabus to indicate we have permissions
-      return await apiRequest('POST', `/api/syllabi/${id}/calendar-permissions`, {
-        provider: selectedProvider
+  const handlePermissionMutation = useMutation({
+    mutationFn: async (provider: string) => {
+      if (!syllabusId) {
+        throw new Error("No syllabus ID provided");
+      }
+      
+      return apiRequest({
+        url: `/api/syllabi/${syllabusId}/calendar-permissions`,
+        method: 'POST',
+        data: { provider }
       });
     },
     onSuccess: () => {
       toast({
-        title: 'Calendar Permission Granted',
-        description: 'You have granted access to your calendar for course scheduling.',
+        title: 'Calendar Permissions Granted',
+        description: 'You can now upload a syllabus and create study plans!',
       });
       
-      // Navigate to extract information page
-      navigate(`/extract/${id}`);
+      // Navigate to syllabus upload or info extraction depending on the flow
+      if (syllabusId) {
+        navigate(`/extract-info/${syllabusId}`);
+      } else {
+        navigate('/upload-syllabus');
+      }
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast({
-        title: 'Permission Failed',
-        description: error.message || 'Could not get calendar permissions. Please try again.',
-        variant: 'destructive'
+        title: 'Error',
+        description: `Failed to set calendar permissions: ${error.message}`,
+        variant: 'destructive',
       });
-    }
+    },
   });
+
+  const handleProviderSelect = (provider: string) => {
+    setSelectedProvider(provider);
+    handlePermissionMutation.mutate(provider);
+  };
 
   const handleSkip = () => {
     toast({
-      title: 'Calendar Access Skipped',
-      description: 'You can add calendar integration later.',
+      title: 'Skipped Calendar Integration',
+      description: 'You can always integrate your calendar later.',
     });
-    navigate(`/extract/${id}`);
+    
+    if (syllabusId) {
+      navigate(`/extract-info/${syllabusId}`);
+    } else {
+      navigate('/upload-syllabus');
+    }
   };
 
   return (
-    <div>
-      <ProgressSteps steps={steps} currentStep={2} />
-      
-      <Card className="max-w-2xl mx-auto mt-8">
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Calendar className="mr-2 h-5 w-5" />
-            Calendar Permissions
-          </CardTitle>
-          <CardDescription>
-            Grant permission to access your calendar for better scheduling of course events and study sessions
-          </CardDescription>
-        </CardHeader>
-        
-        <CardContent className="space-y-6">
-          <div className="flex items-center gap-2 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
-            <Info className="h-5 w-5 text-yellow-500" />
-            <p className="text-sm text-yellow-700">
-              Granting calendar access now will help us create more accurate study plans with your class schedule. 
-              You can always skip this step and add calendar integration later.
+    <MainLayout>
+      <div className="container mx-auto py-8">
+        <Card className="max-w-2xl mx-auto bg-card shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold text-center">
+              Calendar Integration
+            </CardTitle>
+            <CardDescription className="text-center text-lg">
+              Connect your calendar to automatically add study sessions and course events
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent className="space-y-6">
+            <p className="text-muted-foreground text-center mb-2">
+              Select your preferred calendar provider:
             </p>
-          </div>
-          
-          <div>
-            <h3 className="text-lg font-medium mb-4">Select Calendar Provider</h3>
-            <RadioGroup
-              value={selectedProvider}
-              onValueChange={setSelectedProvider}
-              className="grid grid-cols-1 gap-4 md:grid-cols-3"
-            >
-              {integrationProviders.map(provider => (
-                <div key={provider.id}>
-                  <RadioGroupItem
-                    value={provider.id}
-                    id={provider.id}
-                    className="peer sr-only"
-                  />
-                  <Label
-                    htmlFor={provider.id}
-                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {integrationProviders.map((provider: CalendarProvider) => {
+                const Icon = provider.icon;
+                return (
+                  <Button
+                    key={provider.id}
+                    variant="outline"
+                    className={`h-20 flex flex-col items-center justify-center gap-2 ${
+                      selectedProvider === provider.id ? 'border-primary ring-2 ring-primary' : ''
+                    } ${handlePermissionMutation.isPending && selectedProvider === provider.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    disabled={handlePermissionMutation.isPending}
+                    onClick={() => handleProviderSelect(provider.id)}
+                    style={{ 
+                      borderColor: selectedProvider === provider.id ? provider.color : undefined,
+                      borderWidth: selectedProvider === provider.id ? '2px' : '1px'
+                    }}
                   >
-                    <provider.icon className="mb-3 h-6 w-6" />
-                    <span className="font-medium">{provider.name}</span>
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
-          </div>
+                    <Icon className="h-6 w-6" style={{ color: provider.color }} />
+                    <span>{provider.name}</span>
+                  </Button>
+                );
+              })}
+            </div>
+            
+            <Separator className="my-6" />
+            
+            <div className="text-center space-y-4">
+              <h3 className="text-lg font-medium">Why connect your calendar?</h3>
+              <ul className="text-left list-disc space-y-2 pl-6">
+                <li>Automatically add your class schedule to your calendar</li>
+                <li>Sync assignment deadlines and exam dates</li>
+                <li>Get reminders for your study sessions</li>
+                <li>Ensure you never miss an important deadline</li>
+              </ul>
+            </div>
+          </CardContent>
           
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
-            <h4 className="font-medium text-blue-800 mb-2">What happens when you grant permission?</h4>
-            <ul className="text-sm text-blue-700 space-y-1 list-disc pl-5">
-              <li>We'll automatically create calendar events for your classes</li>
-              <li>Your study plans will be added to your calendar</li>
-              <li>You'll receive reminders before important deadlines</li>
-              <li>We'll only add events - we won't modify your existing calendar entries</li>
-            </ul>
-          </div>
-        </CardContent>
-        
-        <CardFooter className="flex justify-between">
-          <Button variant="outline" onClick={handleSkip}>
-            Skip for Now
-          </Button>
-          <Button 
-            onClick={() => calendarPermissionMutation.mutate()}
-            disabled={calendarPermissionMutation.isPending}
-          >
-            {calendarPermissionMutation.isPending ? (
-              <span className="flex items-center">
-                <span className="animate-spin mr-2">⟳</span> Processing...
-              </span>
-            ) : (
-              <span className="flex items-center">
-                Grant Permission <ArrowRight className="ml-2 h-4 w-4" />
-              </span>
+          <CardFooter className="flex flex-col sm:flex-row gap-4 justify-between">
+            <Button
+              variant="ghost"
+              onClick={handleSkip}
+              disabled={handlePermissionMutation.isPending}
+              className="w-full sm:w-auto"
+            >
+              I'll do this later
+            </Button>
+            
+            {selectedProvider && handlePermissionMutation.isPending && (
+              <Button disabled className="w-full sm:w-auto">
+                <span className="animate-spin mr-2 h-4 w-4 border-2 border-current border-t-transparent rounded-full"></span>
+                Connecting...
+              </Button>
             )}
-          </Button>
-        </CardFooter>
-      </Card>
-    </div>
+          </CardFooter>
+        </Card>
+      </div>
+    </MainLayout>
   );
 };
 
