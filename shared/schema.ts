@@ -21,6 +21,12 @@ export const syllabi = pgTable("syllabi", {
   uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
   textContent: text("text_content"),
   status: text("status").notNull().default("uploaded"), // uploaded, processed, error
+  // Course schedule fields
+  firstDayOfClass: timestamp("first_day_of_class"),
+  lastDayOfClass: timestamp("last_day_of_class"),
+  meetingDays: text("meeting_days").array(),
+  meetingTimeStart: text("meeting_time_start"),
+  meetingTimeEnd: text("meeting_time_end"),
 });
 
 export const courseEvents = pgTable("course_events", {
@@ -123,4 +129,17 @@ export const syllabusUploadSchema = z.object({
 export const calendarIntegrationSchema = z.object({
   provider: z.enum(['google', 'apple', 'outlook']),
   accessToken: z.string().optional(),
+});
+
+// Schema for course schedule information
+export const courseScheduleSchema = z.object({
+  firstDayOfClass: z.date(),
+  lastDayOfClass: z.date(),
+  meetingDays: z.array(z.enum(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'])),
+  meetingTimeStart: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, {
+    message: "Meeting time must be in format HH:MM (24-hour)"
+  }),
+  meetingTimeEnd: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, {
+    message: "Meeting time must be in format HH:MM (24-hour)"
+  }),
 });
