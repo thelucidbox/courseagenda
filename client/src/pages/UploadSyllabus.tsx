@@ -197,7 +197,8 @@ const UploadSyllabus = () => {
               <div className="relative">
                 <PDFViewer 
                   file={selectedFile} 
-                  onTextExtracted={handleTextExtracted} 
+                  onTextExtracted={handleTextExtracted}
+                  onProcessingError={handlePdfProcessingError}
                 />
                 
                 {pdfProcessingStatus === 'processing' && (
