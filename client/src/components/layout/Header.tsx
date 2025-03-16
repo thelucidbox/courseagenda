@@ -21,33 +21,23 @@ const Header = () => {
               <line x1="9" y1="14" x2="15" y2="14" stroke="white" />
             </svg>
           </div>
-          <Link href="/">
-            <a className="font-bold text-xl text-gray-900">
-              Syllabus<span className="text-primary">Sync</span>
-            </a>
+          <Link href="/" className="font-bold text-xl text-gray-900">
+            Syllabus<span className="text-primary">Sync</span>
           </Link>
         </div>
         
         <nav className="hidden md:flex space-x-8">
-          <Link href="/">
-            <a className={`${isActive('/') ? 'text-gray-900 font-medium' : 'text-gray-500'} hover:text-primary transition`}>
-              Home
-            </a>
+          <Link href="/" className={`${isActive('/') ? 'text-gray-900 font-medium' : 'text-gray-500'} hover:text-primary transition`}>
+            Home
           </Link>
-          <Link href="/courses">
-            <a className={`${isActive('/courses') ? 'text-gray-900 font-medium' : 'text-gray-500'} hover:text-primary transition`}>
-              My Courses
-            </a>
+          <Link href="/courses" className={`${isActive('/courses') ? 'text-gray-900 font-medium' : 'text-gray-500'} hover:text-primary transition`}>
+            My Courses
           </Link>
-          <Link href="/calendar">
-            <a className={`${isActive('/calendar') ? 'text-gray-900 font-medium' : 'text-gray-500'} hover:text-primary transition`}>
-              Calendar
-            </a>
+          <Link href="/calendar" className={`${isActive('/calendar') ? 'text-gray-900 font-medium' : 'text-gray-500'} hover:text-primary transition`}>
+            Calendar
           </Link>
-          <Link href="/help">
-            <a className={`${isActive('/help') ? 'text-gray-900 font-medium' : 'text-gray-500'} hover:text-primary transition`}>
-              Help
-            </a>
+          <Link href="/help" className={`${isActive('/help') ? 'text-gray-900 font-medium' : 'text-gray-500'} hover:text-primary transition`}>
+            Help
           </Link>
         </nav>
         
