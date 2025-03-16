@@ -95,8 +95,14 @@ const UploadSyllabus = () => {
       
       // Add text content if available
       if (params.textContent) {
+        console.log('Adding extracted text content to upload request', params.textContent.length);
         formData.append('textContent', params.textContent);
+      } else {
+        console.log('No text content to add to form data');
       }
+      
+      // Log what's being sent
+      console.log('Uploading syllabus with form data keys:', Array.from(formData.keys()));
       
       const response = await fetch('/api/syllabi/upload', {
         method: 'POST',

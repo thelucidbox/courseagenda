@@ -43,19 +43,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // PDF upload endpoint
   apiRouter.post('/syllabi/upload', upload.single('file'), async (req, res) => {
     try {
+      console.log('Received syllabus upload request');
+      
       if (!req.file) {
         return res.status(400).json({ message: 'No file uploaded' });
       }
+      
+      console.log(`File uploaded: ${req.file.originalname} (${req.file.size} bytes)`);
+      console.log('Request body keys:', Object.keys(req.body));
+      
+      // Extract the textContent field from the request
+      const providedTextContent = req.body.textContent || '';
+      console.log(`Extracted text content provided: ${providedTextContent.length > 0 ? 'Yes' : 'No'} (Length: ${providedTextContent.length} chars)`);
       
       // Create syllabus record with the uploaded status
       const syllabusData: InsertSyllabus = {
         userId: req.userId as number,
         filename: req.file.originalname,
-        textContent: 'Extracting syllabus information...',
+        textContent: providedTextContent.length > 0 
+          ? providedTextContent 
+          : 'Extracting syllabus information...',
         status: 'uploaded'
       };
 
       const syllabus = await storage.createSyllabus(syllabusData);
+      console.log(`Created syllabus record with ID: ${syllabus.id}`);
       
       // Process the PDF file with Gemini Vision API in the background
       // We'll inform the client the syllabus is being processed and they can check back later
@@ -65,14 +77,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Extract information using Gemini Vision API
           const extractedInfo = await extractInfoFromPDF(req.file!.path, syllabus.id);
+          console.log(`Extracted information using Gemini Vision, found ${extractedInfo.events.length} events`);
           
-          // Process extracted text content from pages (if available)
-          let extractedText = '';
-          if (req.body.textContent && req.body.textContent.length > 0) {
-            extractedText = req.body.textContent;
+          // Process extracted text content from pages
+          let finalTextContent = '';
+          if (providedTextContent && providedTextContent.length > 0) {
+            console.log('Using text content provided by client');
+            finalTextContent = providedTextContent;
           } else {
-            // Use a placeholder if client didn't provide text content
-            extractedText = 'Analyzed directly by Gemini Vision API';
+            console.log('No client-provided text content, using placeholder');
+            finalTextContent = 'Analyzed directly by Gemini Vision API';
           }
           
           // Update syllabus with extracted information
@@ -81,7 +95,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             courseName: extractedInfo.courseName,
             instructor: extractedInfo.instructor,
             term: extractedInfo.term,
-            textContent: extractedText,
+            textContent: finalTextContent,
             status: 'processed'
           });
           

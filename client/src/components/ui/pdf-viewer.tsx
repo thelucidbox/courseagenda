@@ -69,28 +69,46 @@ const PDFViewer = ({ file, onTextExtracted, onProcessingError }: PDFViewerProps)
   // Primary extraction method using PDFjs library directly
   async function extractTextFromPDF(file: File): Promise<string> {
     try {
+      console.log('Starting primary PDF extraction for file:', file.name, 'Size:', file.size);
       const arrayBuffer = await file.arrayBuffer();
+      console.log('File converted to ArrayBuffer, size:', arrayBuffer.byteLength);
+      
+      console.log('Loading PDF document...');
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      console.log('PDF loaded successfully. Number of pages:', pdf.numPages);
+      
       let fullText = '';
 
       for (let i = 1; i <= pdf.numPages; i++) {
+        console.log(`Processing page ${i}/${pdf.numPages}...`);
         const page = await pdf.getPage(i);
         const textContent = await page.getTextContent();
+        
         // Use any to bypass type checking for library incompatibilities
         const items = textContent.items as any[];
+        console.log(`Page ${i}: Found ${items.length} text items`);
+        
         const textItems = items
           .filter(item => 'str' in item)
           .map(item => item.str);
         fullText += textItems.join(' ') + '\n';
+        
+        console.log(`Page ${i} text extraction complete. Total length so far:`, fullText.length);
       }
 
       if (!fullText.trim()) {
+        console.error('No text content could be extracted from the PDF');
         throw new Error('No text content extracted from PDF');
       }
 
+      console.log('PDF extraction complete. Total extracted text length:', fullText.length);
       return fullText;
     } catch (error) {
       console.error('Error in primary extraction method:', error);
+      if (error instanceof Error) {
+        console.error('Error details:', error.message);
+        if (error.stack) console.error('Stack trace:', error.stack);
+      }
       throw error;
     }
   }
@@ -98,22 +116,31 @@ const PDFViewer = ({ file, onTextExtracted, onProcessingError }: PDFViewerProps)
   // Fallback extraction method using simpler approach
   async function extractTextFromPDFFallback(file: File): Promise<string> {
     try {
+      console.log('Starting FALLBACK PDF extraction for file:', file.name, 'Size:', file.size);
+      
       return new Promise((resolve, reject) => {
         const fileReader = new FileReader();
         
         fileReader.onload = function() {
           try {
+            console.log('FileReader loaded file successfully');
             const typedArray = new Uint8Array(this.result as ArrayBuffer);
+            console.log('File converted to Uint8Array, length:', typedArray.length);
             
             // Use basic PDF.js without advanced features
+            console.log('Loading PDF with fallback method...');
             pdfjsLib.getDocument(typedArray).promise.then(pdf => {
+              console.log('PDF loaded successfully in fallback mode. Number of pages:', pdf.numPages);
               let textPromises = [];
               
               for (let i = 1; i <= pdf.numPages; i++) {
+                console.log(`Preparing to extract text from page ${i}/${pdf.numPages} (fallback)...`);
                 textPromises.push(
                   pdf.getPage(i).then(page => {
+                    console.log(`Getting text content for page ${i}...`);
                     return page.getTextContent().then(content => {
                       const items = content.items as any[];
+                      console.log(`Page ${i}: Found ${items.length} text items (fallback)`);
                       return items
                         .filter(item => 'str' in item)
                         .map(item => item.str)
@@ -123,28 +150,46 @@ const PDFViewer = ({ file, onTextExtracted, onProcessingError }: PDFViewerProps)
                 );
               }
               
+              console.log('Waiting for all page text extraction to complete...');
               Promise.all(textPromises).then(pageTexts => {
                 const fullText = pageTexts.join('\n\n');
+                console.log('Fallback extraction complete. Total text length:', fullText.length);
+                
                 if (!fullText.trim()) {
+                  console.error('No text content extracted with fallback method');
                   reject(new Error('No text extracted with fallback method'));
                 } else {
+                  console.log('Fallback extraction successful');
                   resolve(fullText);
                 }
-              }).catch(reject);
-            }).catch(reject);
+              }).catch(error => {
+                console.error('Error in Promise.all for text extraction:', error);
+                reject(error);
+              });
+            }).catch(error => {
+              console.error('Error loading PDF in fallback mode:', error);
+              reject(error);
+            });
           } catch (error) {
+            console.error('Error in fileReader.onload handler:', error);
             reject(error);
           }
         };
         
         fileReader.onerror = function() {
+          console.error('FileReader failed to read the file');
           reject(new Error('FileReader failed to read the file'));
         };
         
+        console.log('Starting FileReader...');
         fileReader.readAsArrayBuffer(file);
       });
     } catch (error) {
       console.error('Error in fallback extraction method:', error);
+      if (error instanceof Error) {
+        console.error('Error details:', error.message);
+        if (error.stack) console.error('Stack trace:', error.stack);
+      }
       throw error;
     }
   }
