@@ -41,15 +41,31 @@ const UploadSyllabus = () => {
       
       return response.json() as Promise<Syllabus>;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/syllabi'] });
       toast({
         title: 'Upload Successful',
-        description: 'Your syllabus has been uploaded and is being processed by Gemini Vision AI.',
+        description: 'Your syllabus has been uploaded and is being processed.',
       });
       
-      // Navigate to the calendar permissions page first
-      navigate(`/calendar-permissions/${data.id}`);
+      try {
+        // Directly extract the syllabus info
+        const extractResponse = await fetch(`/api/syllabi/${data.id}/extract`, {
+          method: 'POST',
+          credentials: 'include',
+        });
+        
+        if (extractResponse.ok) {
+          // After extraction, navigate directly to the create plan page
+          navigate(`/create-plan/${data.id}`);
+        } else {
+          // If extraction fails, still navigate to extract page manually
+          navigate(`/extract/${data.id}`);
+        }
+      } catch (error) {
+        // If there's an error, still navigate to extract page
+        navigate(`/extract/${data.id}`);
+      }
     },
     onError: (error) => {
       toast({
@@ -87,10 +103,10 @@ const UploadSyllabus = () => {
             
             <Alert className="mb-4">
               <CheckCircle2 className="h-4 w-4 text-green-500" />
-              <AlertTitle>Powered by Gemini Vision AI</AlertTitle>
+              <AlertTitle>Upload your PDF and I'll take care of the rest</AlertTitle>
               <AlertDescription>
-                Your PDF will be analyzed by Google's multimodal AI, providing highly accurate 
-                extraction of course information, dates, assignments, and exams.
+                Your syllabus will be analyzed to extract key course information, 
+                important dates, assignments, and exams automatically.
               </AlertDescription>
             </Alert>
             
