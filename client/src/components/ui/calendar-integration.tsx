@@ -29,7 +29,9 @@ interface CalendarIntegrationProps {
   onIntegrationComplete?: () => void;
 }
 
-const WEEKDAYS = [
+type WeekdayType = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
+
+const WEEKDAYS: { value: WeekdayType; label: string }[] = [
   { value: 'monday', label: 'Monday' },
   { value: 'tuesday', label: 'Tuesday' },
   { value: 'wednesday', label: 'Wednesday' },
@@ -57,7 +59,7 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
   });
 
   // Default meeting days as fallback
-  const defaultMeetingDays: ('monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday')[] = ['monday', 'wednesday', 'friday'];
+  const defaultMeetingDays: WeekdayType[] = ['monday', 'wednesday', 'friday'];
   
   // Get form default values based on syllabus data or fallbacks
   const getFormDefaults = () => {
@@ -85,7 +87,7 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
         firstDayOfClass: syllabus.firstDayOfClass ? new Date(syllabus.firstDayOfClass) : form.getValues().firstDayOfClass,
         lastDayOfClass: syllabus.lastDayOfClass ? new Date(syllabus.lastDayOfClass) : form.getValues().lastDayOfClass,
         meetingDays: syllabus.meetingDays && syllabus.meetingDays.length > 0 
-          ? syllabus.meetingDays as ('monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday')[]
+          ? syllabus.meetingDays as WeekdayType[]
           : form.getValues().meetingDays,
         meetingTimeStart: syllabus.meetingTimeStart || form.getValues().meetingTimeStart,
         meetingTimeEnd: syllabus.meetingTimeEnd || form.getValues().meetingTimeEnd
@@ -168,7 +170,7 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
       integrationMutation.mutate({
         firstDayOfClass: new Date(),
         lastDayOfClass: new Date(),
-        meetingDays: [],
+        meetingDays: [] as WeekdayType[],
         meetingTimeStart: '',
         meetingTimeEnd: '',
         includeCourseSchedule: false
@@ -323,10 +325,10 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
                                       >
                                         <FormControl>
                                           <Checkbox
-                                            checked={field.value?.includes(item.value as any)}
+                                            checked={field.value?.includes(item.value)}
                                             onCheckedChange={(checked) => {
                                               return checked
-                                                ? field.onChange([...field.value, item.value as any])
+                                                ? field.onChange([...field.value, item.value])
                                                 : field.onChange(
                                                     field.value?.filter(
                                                       (value) => value !== item.value
