@@ -1,38 +1,40 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Icons } from "@/components/ui/icons";
+import { XCircle } from "lucide-react";
 import { Link } from "wouter";
 
 export default function CalendarError() {
   return (
-    <div className="container max-w-lg mx-auto mt-20 px-4">
+    <div className="container max-w-md mx-auto py-8">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-red-600">
-            <Icons.alertCircle className="h-6 w-6" />
-            Calendar Connection Failed
-          </CardTitle>
-          <CardDescription>
-            There was a problem connecting to your calendar. This could be due to:
-          </CardDescription>
+          <div className="flex items-center space-x-4">
+            <div className="bg-red-100 dark:bg-red-900 p-2 rounded-full">
+              <XCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
+            </div>
+            <div>
+              <CardTitle>Connection Failed</CardTitle>
+              <CardDescription>
+                We couldn't connect to your calendar service.
+              </CardDescription>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          <ul className="list-disc pl-6 space-y-2 text-sm text-muted-foreground">
-            <li>Permissions were not granted for calendar access</li>
-            <li>The connection was cancelled</li>
-            <li>A technical error occurred during the process</li>
-          </ul>
-          <p className="mt-4 text-sm">
-            Please try connecting again. If the problem persists, you can still use
-            the ICS file download option to add events to your calendar manually.
+          <p className="text-sm text-muted-foreground">
+            This could be due to a temporary issue or because you didn't grant the
+            necessary permissions. Please try again and make sure to allow access to
+            your calendar when prompted.
           </p>
         </CardContent>
-        <CardFooter className="flex gap-4">
-          <Link to="/calendar-integration">
-            <Button>Try Again</Button>
+        <CardFooter className="flex flex-col space-y-2">
+          <Link to="/courses">
+            <Button className="w-full">Return to Courses</Button>
           </Link>
-          <Link to="/study-plans">
-            <Button variant="ghost">Return to Study Plans</Button>
+          <Link to="/calendar-connect">
+            <Button variant="outline" className="w-full">
+              Try Again
+            </Button>
           </Link>
         </CardFooter>
       </Card>

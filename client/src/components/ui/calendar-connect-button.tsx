@@ -1,27 +1,25 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Icons } from "@/components/ui/icons";
 import { toast } from "@/hooks/use-toast";
+import { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { SiMicrosoftoutlook } from "react-icons/si";
 import { IoCalendar } from "react-icons/io5";
 
 type CalendarProvider = "google" | "microsoft" | "apple";
 
-interface CalendarConnectProps {
+interface CalendarConnectButtonProps {
   onConnect?: (provider: CalendarProvider) => void;
   onCancel?: () => void;
 }
 
-export function CalendarConnect({ onConnect, onCancel }: CalendarConnectProps) {
-  const [selectedProvider, setSelectedProvider] = useState<CalendarProvider | null>(null);
+export function CalendarConnectButton({ onConnect, onCancel }: CalendarConnectButtonProps) {
   const [isConnecting, setIsConnecting] = useState(false);
-  
+
   const handleConnect = async (provider: CalendarProvider) => {
     try {
       setIsConnecting(true);
-      setSelectedProvider(provider);
       
       // For Google Calendar, redirect to the OAuth flow
       if (provider === "google") {
@@ -45,7 +43,6 @@ export function CalendarConnect({ onConnect, onCancel }: CalendarConnectProps) {
       });
     } finally {
       setIsConnecting(false);
-      setSelectedProvider(null);
     }
   };
 
@@ -58,47 +55,43 @@ export function CalendarConnect({ onConnect, onCancel }: CalendarConnectProps) {
           and course events.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid gap-4">
-          <Button
-            variant="outline"
-            className="w-full justify-start"
-            onClick={() => handleConnect("google")}
-            disabled={isConnecting}
-          >
-            <FcGoogle className="mr-2 h-5 w-5" />
-            Connect Google Calendar
-            {isConnecting && selectedProvider === "google" && (
-              <Icons.spinner className="ml-auto h-4 w-4 animate-spin" />
-            )}
-          </Button>
-          
-          <Button
-            variant="outline"
-            className="w-full justify-start"
-            onClick={() => handleConnect("microsoft")}
-            disabled={isConnecting}
-          >
-            <SiMicrosoftoutlook className="mr-2 h-5 w-5 text-blue-500" />
-            Connect Microsoft Calendar
-            {isConnecting && selectedProvider === "microsoft" && (
-              <Icons.spinner className="ml-auto h-4 w-4 animate-spin" />
-            )}
-          </Button>
-          
-          <Button
-            variant="outline"
-            className="w-full justify-start"
-            onClick={() => handleConnect("apple")}
-            disabled={isConnecting}
-          >
-            <IoCalendar className="mr-2 h-5 w-5" />
-            Connect Apple Calendar
-            {isConnecting && selectedProvider === "apple" && (
-              <Icons.spinner className="ml-auto h-4 w-4 animate-spin" />
-            )}
-          </Button>
-        </div>
+      <CardContent className="grid gap-4">
+        <Button
+          variant="outline"
+          className="w-full justify-start"
+          onClick={() => handleConnect("google")}
+          disabled={isConnecting}
+        >
+          <FcGoogle className="mr-2 h-5 w-5" />
+          Connect Google Calendar
+          {isConnecting && (
+            <Icons.spinner className="ml-auto h-4 w-4 animate-spin" />
+          )}
+        </Button>
+        <Button
+          variant="outline"
+          className="w-full justify-start"
+          onClick={() => handleConnect("microsoft")}
+          disabled={isConnecting}
+        >
+          <SiMicrosoftoutlook className="mr-2 h-5 w-5 text-blue-500" />
+          Connect Microsoft Calendar
+          {isConnecting && (
+            <Icons.spinner className="ml-auto h-4 w-4 animate-spin" />
+          )}
+        </Button>
+        <Button
+          variant="outline"
+          className="w-full justify-start"
+          onClick={() => handleConnect("apple")}
+          disabled={isConnecting}
+        >
+          <IoCalendar className="mr-2 h-5 w-5" />
+          Connect Apple Calendar
+          {isConnecting && (
+            <Icons.spinner className="ml-auto h-4 w-4 animate-spin" />
+          )}
+        </Button>
       </CardContent>
       <CardFooter>
         <Button

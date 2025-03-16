@@ -1,22 +1,30 @@
 import { useState, useEffect } from 'react';
+import { CalendarConnectButton } from '@/components/ui/calendar-connect-button';
+import { useToast } from '@/hooks/use-toast';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import { Calendar, CheckCircle2, Info, Download, FileText, Bell } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { integrationProviders, type CalendarEvent, downloadMultiEventICSFile } from '@/lib/calendar';
-import { Syllabus, StudyPlan, StudySession, CourseEvent, courseScheduleSchema } from '@shared/schema';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Calendar, Info, Bell, Download } from 'lucide-react';
+import { CalendarEvent, downloadMultiEventICSFile } from '@/lib/calendar';
+import { Syllabus, StudyPlan, StudySession, CourseEvent } from '@shared/schema';
+
+// Define the course schedule schema
+const courseScheduleSchema = z.object({
+  firstDayOfClass: z.date(),
+  lastDayOfClass: z.date(),
+  meetingDays: z.array(z.string()),
+  meetingTimeStart: z.string(),
+  meetingTimeEnd: z.string()
+});
 
 // Extend the course schedule schema for form validation
 const courseScheduleFormSchema = courseScheduleSchema.extend({

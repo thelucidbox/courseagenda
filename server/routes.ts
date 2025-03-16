@@ -9,8 +9,10 @@ import {
   type InsertSyllabus,
   type InsertCourseEvent,
   type InsertStudyPlan,
-  type InsertStudySession
+  type InsertStudySession,
+  type InsertOAuthToken
 } from "@shared/schema";
+import { getAuthUrl, getTokensFromCode } from "./services/google-calendar";
 import multer from "multer";
 import { z } from "zod";
 import * as fs from "fs";
@@ -428,38 +430,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Google Calendar OAuth routes
-  apiRouter.get('/auth/google/calendar', (req, res) => {
-    const { getAuthUrl } = require('./services/google-calendar');
-    const authUrl = getAuthUrl();
-    res.redirect(authUrl);
+  apiRouter.get('/auth/google/calendar', (_req, res) => {
+    try {
+      const authUrl = getAuthUrl();
+      res.redirect(authUrl);
+    } catch (error) {
+      console.error("Failed to generate auth URL:", error);
+      res.redirect("/calendar/error");
+    }
   });
 
   apiRouter.get('/auth/google/callback', async (req, res) => {
     try {
-      const { getTokensFromCode } = require('./services/google-calendar');
       const { code } = req.query;
-
-      if (!code || typeof code !== 'string') {
-        return res.status(400).json({ message: 'Authorization code is required' });
+      
+      if (!code || typeof code !== "string") {
+        throw new Error("No authorization code provided");
       }
 
       const tokens = await getTokensFromCode(code);
       
-      // Store tokens in database
-      await storage.createOAuthToken({
-        userId: req.userId as number,
-        provider: 'google',
-        accessToken: tokens.access_token,
-        refreshToken: tokens.refresh_token,
-        expiresAt: new Date(tokens.expiry_date),
-        scope: tokens.scope
-      });
+      if (!req.userId) {
+        throw new Error("User not authenticated");
+      }
 
-      // Redirect back to the calendar integration page
-      res.redirect('/calendar-integration/success');
+      // Store the tokens in the database
+      const tokenData: InsertOAuthToken = {
+        userId: req.userId,
+        provider: "google",
+        accessToken: tokens.access_token,
+        refreshToken: tokens.refresh_token ?? null,
+        scope: tokens.scope,
+        expiresAt: tokens.expiresAt
+      };
+
+      await storage.createOAuthToken(tokenData);
+      
+      res.redirect("/calendar/success");
     } catch (error) {
-      console.error('Google Calendar OAuth error:', error);
-      res.redirect('/calendar-integration/error');
+      console.error("OAuth callback error:", error);
+      res.redirect("/calendar/error");
     }
   });
 
