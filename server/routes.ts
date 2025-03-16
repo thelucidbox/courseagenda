@@ -47,15 +47,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'No file uploaded' });
       }
       
-      // Create syllabus record without extracting text - client will handle this
+      // Get extracted text from request if available
+      const extractedText = req.body.textContent || 'Uploaded. Text extraction pending.';
+      
+      // Create syllabus record with the extracted text from client
       const syllabusData: InsertSyllabus = {
         userId: req.userId as number,
         filename: req.file.originalname,
-        textContent: 'Uploaded. Text extraction pending.',
+        textContent: extractedText,
         status: 'uploaded'
       };
 
       const syllabus = await storage.createSyllabus(syllabusData);
+      
+      // Log successful extraction
+      if (extractedText !== 'Uploaded. Text extraction pending.') {
+        console.log(`Successfully extracted text from PDF, length: ${extractedText.length} characters`);
+      }
       
       // Remove temp file
       fs.unlinkSync(req.file.path);

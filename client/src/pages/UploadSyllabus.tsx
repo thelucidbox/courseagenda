@@ -29,6 +29,11 @@ const UploadSyllabus = () => {
       const formData = new FormData();
       formData.append('file', file);
       
+      // Include the extracted text if available
+      if (extractedText) {
+        formData.append('textContent', extractedText);
+      }
+      
       const response = await fetch('/api/syllabi/upload', {
         method: 'POST',
         body: formData,
