@@ -124,47 +124,83 @@ const CreateStudyPlan = () => {
     createPlanMutation.mutate(data);
   };
 
-  // Generate study sessions based on form data
+  // Generate study sessions directly from course events
   const generateStudySessions = (studyPlanId: number, formData: StudyPlanValues): Partial<StudySession>[] => {
-    const { dateRange, sessionsPerWeek, hoursPerSession } = formData;
-    const { from, to } = dateRange;
-    
-    const totalDays = differenceInDays(to, from);
-    const sessionsCount = Math.floor((totalDays / 7) * sessionsPerWeek);
-    
-    // Space sessions evenly
-    const daysBetweenSessions = Math.floor(totalDays / sessionsCount);
-    
+    const { hoursPerSession } = formData;
     const sessions: Partial<StudySession>[] = [];
     
-    for (let i = 0; i < sessionsCount; i++) {
-      const sessionDate = addDays(from, i * daysBetweenSessions);
-      
-      // Adjust for events (in a real app, this would be more sophisticated)
-      const nearbyEvents = events?.filter(event => {
-        const eventDate = new Date(event.dueDate);
-        return Math.abs(differenceInDays(eventDate, sessionDate)) <= 3;
+    // If no events found, return empty array
+    if (!events || events.length === 0) {
+      toast({
+        title: "No course events found",
+        description: "No events were extracted from your syllabus. Please try uploading it again.",
+        variant: "destructive"
       });
-      
-      let sessionTitle = `Study Session ${i + 1}`;
-      let sessionDescription = `Regular study session for ${syllabus?.courseCode || 'your course'}`;
-      
-      if (nearbyEvents && nearbyEvents.length > 0) {
-        sessionTitle = `Prepare for ${nearbyEvents[0].title}`;
-        sessionDescription = `Study session to prepare for upcoming ${nearbyEvents[0].eventType}: ${nearbyEvents[0].title}`;
-      }
-      
-      sessions.push({
-        studyPlanId,
-        title: sessionTitle,
-        description: sessionDescription,
-        startTime: sessionDate,
-        endTime: addHours(sessionDate, hoursPerSession),
-      });
+      return [];
     }
     
-    setGeneratedSessions(sessions as StudySession[]);
-    return sessions;
+    // Sort events by due date
+    const sortedEvents = [...events].sort((a, b) => 
+      new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+    );
+    
+    // Create sessions for each course event
+    sortedEvents.forEach(event => {
+      const eventDate = new Date(event.dueDate);
+      
+      // Create a study session 3 days before the event
+      const prepSessionDate = addDays(eventDate, -3);
+      
+      // Format event type for better display
+      const formattedEventType = event.eventType.charAt(0).toUpperCase() + event.eventType.slice(1);
+      
+      // Create preparation session
+      sessions.push({
+        studyPlanId,
+        title: `Prepare for ${event.title}`,
+        description: `Preparation for upcoming ${formattedEventType}: ${event.title}${event.description ? ` - ${event.description}` : ''}`,
+        startTime: prepSessionDate,
+        endTime: addHours(prepSessionDate, hoursPerSession),
+        eventType: 'preparation',
+        relatedEventId: event.id,
+      });
+      
+      // For exams and major assignments, add a second study session 1 day before
+      if (event.eventType === 'exam' || event.eventType === 'project' || 
+          (event.eventType === 'assignment' && event.title.toLowerCase().includes('final'))) {
+        
+        const finalPrepDate = addDays(eventDate, -1);
+        
+        sessions.push({
+          studyPlanId,
+          title: `Final Review for ${event.title}`,
+          description: `Final preparation for ${formattedEventType}: ${event.title}${event.description ? ` - ${event.description}` : ''}`,
+          startTime: finalPrepDate,
+          endTime: addHours(finalPrepDate, hoursPerSession),
+          eventType: 'final_review',
+          relatedEventId: event.id,
+        });
+      }
+      
+      // Add the actual course event to calendar
+      sessions.push({
+        studyPlanId,
+        title: event.title,
+        description: `${formattedEventType}${event.description ? `: ${event.description}` : ''}`,
+        startTime: eventDate,
+        endTime: addHours(eventDate, 1), // 1 hour placeholder for actual event
+        eventType: event.eventType,
+        relatedEventId: event.id,
+      });
+    });
+    
+    // Sort sessions by date
+    const sortedSessions = sessions.sort((a, b) => 
+      (a.startTime as Date).getTime() - (b.startTime as Date).getTime()
+    );
+    
+    setGeneratedSessions(sortedSessions as StudySession[]);
+    return sortedSessions;
   };
 
   // Create sessions one by one

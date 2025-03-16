@@ -122,51 +122,27 @@ const UploadSyllabus = () => {
                 </div>
                 
                 {/* Additional guidance banner */}
-                <div className="mt-4 bg-primary-50 border border-primary-100 rounded-md p-4 flex items-center justify-between">
-                  <div className="flex items-center">
-                    <CheckCircle2 className="h-5 w-5 text-primary mr-2" />
-                    <span className="font-medium text-sm">PDF ready for processing!</span>
-                  </div>
-                  <Button 
-                    onClick={handleContinue}
-                    disabled={uploadMutation.isPending}
-                    size="sm"
-                    className="ml-2 bg-primary hover:bg-primary/90 text-white font-medium shadow-md"
-                  >
-                    {uploadMutation.isPending ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Uploading...
-                      </>
-                    ) : (
-                      <>
-                        Continue to Process PDF <ArrowRight className="ml-2 h-4 w-4" />
-                      </>
-                    )}
-                  </Button>
-                </div>
-                
-                {/* Large, centered continue button for even more prominence */}
-                <div className="mt-6 flex justify-center">
-                  <Button 
-                    onClick={handleContinue}
-                    disabled={uploadMutation.isPending}
-                    size="lg"
-                    className="w-full max-w-md bg-primary shadow-lg text-white font-medium py-6"
-                  >
-                    {uploadMutation.isPending ? (
-                      <>
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        Uploading...
-                      </>
-                    ) : (
-                      <>
-                        <span className="text-lg">Continue to Process PDF</span>
-                        <ArrowRight className="ml-3 h-5 w-5" />
-                      </>
-                    )}
-                  </Button>
-                </div>
+                {/* Single, prominent continue button */}
+              <div className="mt-6 flex justify-center">
+                <Button 
+                  onClick={handleContinue}
+                  disabled={uploadMutation.isPending}
+                  size="lg"
+                  className="w-full max-w-md bg-primary shadow-lg text-white font-medium py-6"
+                >
+                  {uploadMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-lg">Process PDF</span>
+                      <ArrowRight className="ml-3 h-5 w-5" />
+                    </>
+                  )}
+                </Button>
+              </div>
               </div>
             )}
             
@@ -175,24 +151,8 @@ const UploadSyllabus = () => {
                 <Button 
                   onClick={() => setSelectedFile(null)} 
                   variant="outline" 
-                  className="mr-2"
                 >
                   Cancel
-                </Button>
-                <Button 
-                  onClick={handleContinue}
-                  disabled={uploadMutation.isPending}
-                >
-                  {uploadMutation.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Uploading...
-                    </>
-                  ) : (
-                    <>
-                      Continue <ArrowRight className="ml-2 h-4 w-4" />
-                    </>
-                  )}
                 </Button>
               </div>
             )}
