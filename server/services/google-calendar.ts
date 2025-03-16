@@ -19,11 +19,18 @@ export const GOOGLE_CALENDAR_SCOPES = [
 ];
 
 export function getAuthUrl(): string {
-  return oauth2Client.generateAuthUrl({
+  // For debugging
+  const authUrl = oauth2Client.generateAuthUrl({
     access_type: 'offline',
     scope: GOOGLE_CALENDAR_SCOPES,
-    prompt: 'consent'
+    prompt: 'consent',
+    include_granted_scopes: true
   });
+  
+  console.log('Generated Google Calendar Auth URL:', authUrl);
+  console.log('Using calendar redirect URI:', REDIRECT_URI);
+  
+  return authUrl;
 }
 
 export async function getTokensFromCode(code: string): Promise<{

@@ -36,11 +36,18 @@ const oAuth2Client = new google.auth.OAuth2(
  * Generate Google OAuth authorization URL
  */
 export function getGoogleAuthUrl(): string {
-  return oAuth2Client.generateAuthUrl({
+  // For debugging
+  const authUrl = oAuth2Client.generateAuthUrl({
     access_type: 'offline',
     scope: SCOPES,
-    prompt: 'consent' // Force showing the consent screen to get refresh token
+    prompt: 'consent', // Force showing the consent screen to get refresh token
+    include_granted_scopes: true
   });
+  
+  console.log('Generated Google Auth URL:', authUrl);
+  console.log('Using redirect URI:', REDIRECT_URI);
+  
+  return authUrl;
 }
 
 /**
