@@ -9,6 +9,7 @@ import UploadSyllabus from "@/pages/UploadSyllabus";
 import ExtractInfo from "@/pages/ExtractInfo";
 import CreateStudyPlan from "@/pages/CreateStudyPlan";
 import Courses from "@/pages/Courses";
+import CalendarIntegration from "@/pages/CalendarIntegration";
 
 function Router() {
   return (
@@ -18,6 +19,7 @@ function Router() {
       <Route path="/extract/:id" component={ExtractInfo} />
       <Route path="/create-plan/:id" component={CreateStudyPlan} />
       <Route path="/courses" component={Courses} />
+      <Route path="/calendar-integration/:id" component={CalendarIntegration} />
       <Route component={NotFound} />
     </Switch>
   );

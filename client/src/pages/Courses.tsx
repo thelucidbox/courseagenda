@@ -188,6 +188,12 @@ const CourseCard = ({
                   <CheckCircle className="h-4 w-4 mr-1" />
                   <span>Synced with calendar</span>
                 </div>
+              ) : studyPlans.length > 0 ? (
+                <Button size="sm" variant="outline" asChild className="w-full">
+                  <Link href={`/calendar-integration/${studyPlans[0].id}`}>
+                    <Calendar className="mr-1 h-4 w-4" /> Add to Calendar
+                  </Link>
+                </Button>
               ) : (
                 <Button size="sm" variant="outline" asChild className="w-full">
                   <Link href={`/create-plan/${syllabus.id}`}>
