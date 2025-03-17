@@ -25,6 +25,11 @@ export const users = pgTable("users", {
   googleId: text("google_id").unique(),
   profileImageUrl: text("profile_image_url"),
   authProvider: text("auth_provider"), // 'google', 'email', etc.
+  role: text("role").default("user"), // 'user' or 'admin'
+  createdAt: timestamp("created_at").defaultNow(),
+  // Subscription fields
+  subscriptionStatus: text("subscription_status").default("free"), // 'free', 'premium', 'lifetime'
+  subscriptionExpiry: timestamp("subscription_expiry"),
 });
 
 export const syllabi = pgTable("syllabi", {
@@ -101,6 +106,9 @@ export const insertUserSchema = createInsertSchema(users).pick({
   googleId: true,
   profileImageUrl: true,
   authProvider: true,
+  role: true,
+  subscriptionStatus: true,
+  subscriptionExpiry: true,
 });
 
 export const insertSyllabusSchema = createInsertSchema(syllabi).pick({

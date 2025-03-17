@@ -90,7 +90,19 @@ export class MemStorage implements IStorage {
       username: "testuser",
       password: "password",
       displayName: "John Smith",
-      initials: "JS"
+      initials: "JS",
+      role: "user",
+      subscriptionStatus: "free"
+    });
+    
+    // Add an admin user for testing
+    this.createUser({
+      username: "admin",
+      password: "admin123",
+      displayName: "Admin User",
+      initials: "AD",
+      role: "admin",
+      subscriptionStatus: "lifetime"
     });
   }
 
@@ -163,7 +175,11 @@ export class MemStorage implements IStorage {
       email: insertUser.email ?? null,
       googleId: insertUser.googleId ?? null,
       profileImageUrl: insertUser.profileImageUrl ?? null,
-      authProvider: insertUser.authProvider ?? null
+      authProvider: insertUser.authProvider ?? null,
+      role: insertUser.role ?? "user",
+      createdAt: new Date(),
+      subscriptionStatus: insertUser.subscriptionStatus ?? "free",
+      subscriptionExpiry: insertUser.subscriptionExpiry ?? null
     };
     this.users.set(id, user);
     return user;

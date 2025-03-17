@@ -1,4 +1,4 @@
-import { Router, type Express } from "express";
+import { Router, type Express, type Response, type NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { 
@@ -635,6 +635,173 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api', apiRouter);
 
   // Create HTTP server
+  // Admin Routes
+  apiRouter.get('/admin/users', isAdmin, async (req, res) => {
+    try {
+      // Get all users with their syllabi and study plan counts
+      const users = await storage.getAllUsers();
+      
+      // For each user, get syllabi and study plan counts
+      const usersWithCounts = await Promise.all(users.map(async (user) => {
+        const syllabi = await storage.getSyllabiByUser(user.id);
+        const studyPlans = await storage.getStudyPlansByUser(user.id);
+        
+        return {
+          ...user,
+          syllabusCount: syllabi.length,
+          studyPlanCount: studyPlans.length,
+          createdAt: user.createdAt || new Date().toISOString()
+        };
+      }));
+      
+      return res.status(200).json(usersWithCounts);
+    } catch (error) {
+      console.error('Error getting admin users:', error);
+      return res.status(500).json({ message: 'Failed to get users' });
+    }
+  });
+
+  // Get specific user (admin only)
+  apiRouter.get('/admin/users/:id', isAdmin, async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const user = await storage.getUser(id);
+      
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      // Get syllabi and study plan counts for this user
+      const syllabi = await storage.getSyllabiByUser(id);
+      const studyPlans = await storage.getStudyPlansByUser(id);
+      
+      return res.status(200).json({
+        ...user,
+        syllabusCount: syllabi.length,
+        studyPlanCount: studyPlans.length
+      });
+    } catch (error) {
+      console.error('Error getting specific user:', error);
+      return res.status(500).json({ message: 'Failed to get user details' });
+    }
+  });
+
+  // Update user (admin only)
+  apiRouter.patch('/admin/users/:id', isAdmin, async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const updates = req.body;
+      
+      const user = await storage.getUser(id);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      const updatedUser = await storage.updateUser(id, updates);
+      
+      return res.status(200).json(updatedUser);
+    } catch (error) {
+      console.error('Error updating user:', error);
+      return res.status(500).json({ message: 'Failed to update user' });
+    }
+  });
+
+  // Delete user (admin only)
+  apiRouter.delete('/admin/users/:id', isAdmin, async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      
+      // Check if user exists
+      const user = await storage.getUser(id);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      // First, we need to delete all related data
+      // 1. Get all syllabi for this user
+      const syllabi = await storage.getSyllabiByUser(id);
+      
+      // 2. For each syllabus, delete related data
+      for (const syllabus of syllabi) {
+        // Delete course events
+        const events = await storage.getCourseEvents(syllabus.id);
+        for (const event of events) {
+          await storage.deleteCourseEvent(event.id);
+        }
+        
+        // Delete study plans and sessions
+        const studyPlans = await storage.getStudyPlansBySyllabus(syllabus.id);
+        for (const plan of studyPlans) {
+          // Delete study sessions
+          const sessions = await storage.getStudySessions(plan.id);
+          for (const session of sessions) {
+            await storage.deleteStudySession(session.id);
+          }
+          
+          // Delete the study plan
+          await storage.deleteStudyPlan(plan.id);
+        }
+        
+        // Delete the syllabus
+        await storage.deleteSyllabus(syllabus.id);
+      }
+      
+      // Delete OAuth tokens for this user
+      await storage.deleteOAuthTokensByUserId(id);
+      
+      // Finally, delete the user
+      await storage.deleteUser(id);
+      
+      return res.status(200).json({ message: 'User and all associated data deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      return res.status(500).json({ message: 'Failed to delete user' });
+    }
+  });
+
+  // Get all syllabi (admin only)
+  apiRouter.get('/admin/syllabi', isAdmin, async (req, res) => {
+    try {
+      const syllabi = await storage.getAllSyllabi();
+      return res.status(200).json(syllabi);
+    } catch (error) {
+      console.error('Error getting all syllabi:', error);
+      return res.status(500).json({ message: 'Failed to get syllabi' });
+    }
+  });
+
+  // Get system stats (admin only)
+  apiRouter.get('/admin/stats', isAdmin, async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      const syllabi = await storage.getAllSyllabi();
+      
+      // Count study plans and sessions
+      let studyPlanCount = 0;
+      let studySessionCount = 0;
+      
+      for (const syllabus of syllabi) {
+        const plans = await storage.getStudyPlansBySyllabus(syllabus.id);
+        studyPlanCount += plans.length;
+        
+        for (const plan of plans) {
+          const sessions = await storage.getStudySessions(plan.id);
+          studySessionCount += sessions.length;
+        }
+      }
+      
+      return res.status(200).json({
+        userCount: users.length,
+        syllabusCount: syllabi.length,
+        studyPlanCount,
+        studySessionCount
+      });
+    } catch (error) {
+      console.error('Error getting admin stats:', error);
+      return res.status(500).json({ message: 'Failed to get system stats' });
+    }
+  });
+
   const httpServer = createServer(app);
   
   return httpServer;
