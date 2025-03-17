@@ -12,22 +12,27 @@ import CreateStudyPlan from "@/pages/CreateStudyPlan";
 import Courses from "@/pages/Courses";
 import CalendarIntegration from "@/pages/CalendarIntegration";
 import Profile from "@/pages/Profile";
+import Landing from "@/pages/Landing";
 // Import directly using relative path instead of alias to fix the module resolution
 import CalendarPermissions from "./pages/CalendarPermissions";
 import CalendarSuccess from "./pages/CalendarSuccess";
 import CalendarError from "./pages/CalendarError";
 import { ThemeProvider } from "./components/ThemeProvider";
+import { useReplitAuth } from "@/hooks/use-replit-auth";
 
 function Router() {
   const [location] = useLocation();
+  const { isAuthenticated } = useReplitAuth();
 
   // Auto-scroll to top on route change
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location]);
+  
   return (
     <Switch>
-      <Route path="/" component={Home} />
+      <Route path="/" component={isAuthenticated ? Home : Landing} />
+      <Route path="/dashboard" component={Home} />
       <Route path="/upload" component={UploadSyllabus} />
       <Route path="/calendar-permissions/:id?" component={CalendarPermissions} />
       <Route path="/extract/:id" component={ExtractInfo} />
