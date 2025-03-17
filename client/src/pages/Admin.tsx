@@ -466,6 +466,96 @@ const AdminPage = () => {
 
           {/* Settings Tab */}
           <TabsContent value="settings" className="space-y-4">
+            {/* System Stats Dashboard */}
+            <Card>
+              <CardHeader>
+                <CardTitle>System Statistics</CardTitle>
+                <CardDescription>
+                  Overview of system usage and metrics
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* User Count Card */}
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex flex-col items-center space-y-2">
+                        <div className="p-2 bg-primary/10 rounded-full">
+                          <Users className="h-6 w-6 text-primary" />
+                        </div>
+                        <h2 className="text-3xl font-bold">
+                          {isLoadingStats ? (
+                            <div className="animate-pulse w-12 h-8 bg-muted rounded"></div>
+                          ) : (
+                            systemStats.userCount
+                          )}
+                        </h2>
+                        <p className="text-sm text-muted-foreground">Total Users</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Syllabus Count Card */}
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex flex-col items-center space-y-2">
+                        <div className="p-2 bg-primary/10 rounded-full">
+                          <FileText className="h-6 w-6 text-primary" />
+                        </div>
+                        <h2 className="text-3xl font-bold">
+                          {isLoadingStats ? (
+                            <div className="animate-pulse w-12 h-8 bg-muted rounded"></div>
+                          ) : (
+                            systemStats.syllabusCount
+                          )}
+                        </h2>
+                        <p className="text-sm text-muted-foreground">Total Syllabi</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Study Plan Count Card */}
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex flex-col items-center space-y-2">
+                        <div className="p-2 bg-primary/10 rounded-full">
+                          <BookOpen className="h-6 w-6 text-primary" />
+                        </div>
+                        <h2 className="text-3xl font-bold">
+                          {isLoadingStats ? (
+                            <div className="animate-pulse w-12 h-8 bg-muted rounded"></div>
+                          ) : (
+                            systemStats.studyPlanCount
+                          )}
+                        </h2>
+                        <p className="text-sm text-muted-foreground">Study Plans</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Study Session Count Card */}
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex flex-col items-center space-y-2">
+                        <div className="p-2 bg-primary/10 rounded-full">
+                          <CalendarDays className="h-6 w-6 text-primary" />
+                        </div>
+                        <h2 className="text-3xl font-bold">
+                          {isLoadingStats ? (
+                            <div className="animate-pulse w-12 h-8 bg-muted rounded"></div>
+                          ) : (
+                            systemStats.studySessionCount
+                          )}
+                        </h2>
+                        <p className="text-sm text-muted-foreground">Study Sessions</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </CardContent>
+            </Card>
+            
+            {/* System Settings Card */}
             <Card>
               <CardHeader>
                 <CardTitle>System Settings</CardTitle>
@@ -476,7 +566,7 @@ const AdminPage = () => {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <h3 className="text-lg font-medium">Subscription Settings</h3>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="annual-price">Annual Subscription Price ($)</Label>
                       <Input id="annual-price" placeholder="5.00" />
@@ -494,6 +584,20 @@ const AdminPage = () => {
                     <div className="space-y-2">
                       <Label htmlFor="gemini-key">Gemini API Key</Label>
                       <Input id="gemini-key" type="password" placeholder="•••••••••••••••••" />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <h3 className="text-lg font-medium">Free Tier Limits</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="free-syllabi-limit">Number of Free Syllabi</Label>
+                      <Input id="free-syllabi-limit" type="number" placeholder="1" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="free-study-plans-limit">Number of Free Study Plans</Label>
+                      <Input id="free-study-plans-limit" type="number" placeholder="1" />
                     </div>
                   </div>
                 </div>
