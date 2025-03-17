@@ -1,10 +1,37 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import path from "path";
+import fs from "fs";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Special middleware to handle service worker files with proper MIME types
+app.get('/service-worker.js', (req, res) => {
+  const filePath = path.resolve('./public/service-worker.js');
+  res.set('Content-Type', 'application/javascript');
+  res.sendFile(filePath);
+});
+
+app.get('/register-sw.js', (req, res) => {
+  const filePath = path.resolve('./public/register-sw.js');
+  res.set('Content-Type', 'application/javascript');
+  res.sendFile(filePath);
+});
+
+app.get('/pdf-worker-loader.js', (req, res) => {
+  const filePath = path.resolve('./public/pdf-worker-loader.js');
+  res.set('Content-Type', 'application/javascript');
+  res.sendFile(filePath);
+});
+
+app.get('/manifest.json', (req, res) => {
+  const filePath = path.resolve('./public/manifest.json');
+  res.set('Content-Type', 'application/json');
+  res.sendFile(filePath);
+});
 
 app.use((req, res, next) => {
   const start = Date.now();
