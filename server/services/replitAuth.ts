@@ -20,7 +20,12 @@ export async function setupAuth(app: Express) {
     saveUninitialized: false,
     store: new MemStore({
       checkPeriod: 86400000 // prune expired entries every 24h
-    })
+    }),
+    cookie: {
+      secure: process.env.NODE_ENV === 'production', 
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    }
   };
   
   app.set("trust proxy", 1);

@@ -22,28 +22,44 @@ import { ThemeProvider } from "./components/ThemeProvider";
 import { useReplitAuth } from "@/hooks/use-replit-auth";
 
 function Router() {
-  const [location] = useLocation();
-  const { isAuthenticated } = useReplitAuth();
+  const [location, setLocation] = useLocation();
+  const { isAuthenticated, isLoading } = useReplitAuth();
+
+  // Redirect authenticated users from root to dashboard
+  useEffect(() => {
+    if (isAuthenticated && location === '/') {
+      setLocation('/dashboard');
+    }
+  }, [isAuthenticated, location, setLocation]);
 
   // Auto-scroll to top on route change
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location]);
   
+  // Show a simple loading state
+  if (isLoading && location !== '/') {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" aria-label="Loading"/>
+      </div>
+    );
+  }
+  
   return (
     <Switch>
       <Route path="/" component={isAuthenticated ? Home : Landing} />
-      <Route path="/dashboard" component={Home} />
-      <Route path="/upload" component={UploadSyllabus} />
-      <Route path="/calendar-permissions/:id?" component={CalendarPermissions} />
-      <Route path="/extract/:id" component={ExtractInfo} />
-      <Route path="/create-plan/:id" component={CreateStudyPlan} />
-      <Route path="/courses" component={Courses} />
-      <Route path="/calendar-integration/:id" component={CalendarIntegration} />
-      <Route path="/calendar/success" component={CalendarSuccess} />
-      <Route path="/calendar/error" component={CalendarError} />
-      <Route path="/profile" component={Profile} />
-      <Route path="/admin" component={Admin} />
+      <Route path="/dashboard" component={isAuthenticated ? Home : Landing} />
+      <Route path="/upload" component={isAuthenticated ? UploadSyllabus : Landing} />
+      <Route path="/calendar-permissions/:id?" component={isAuthenticated ? CalendarPermissions : Landing} />
+      <Route path="/extract/:id" component={isAuthenticated ? ExtractInfo : Landing} />
+      <Route path="/create-plan/:id" component={isAuthenticated ? CreateStudyPlan : Landing} />
+      <Route path="/courses" component={isAuthenticated ? Courses : Landing} />
+      <Route path="/calendar-integration/:id" component={isAuthenticated ? CalendarIntegration : Landing} />
+      <Route path="/calendar/success" component={isAuthenticated ? CalendarSuccess : Landing} />
+      <Route path="/calendar/error" component={isAuthenticated ? CalendarError : Landing} />
+      <Route path="/profile" component={isAuthenticated ? Profile : Landing} />
+      <Route path="/admin" component={isAuthenticated ? Admin : Landing} />
       <Route component={NotFound} />
     </Switch>
   );

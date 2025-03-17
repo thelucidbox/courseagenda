@@ -84,7 +84,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isAuthenticated: req.isAuthenticated?.(),
         session: req.session,
         user: req.user,
-        passport: req.session?.passport
+        passport: req.session && 'passport' in req.session ? req.session['passport'] : undefined
       });
       
       // First check if the user is authenticated via Replit auth
