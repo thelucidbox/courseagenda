@@ -492,6 +492,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             startTime: new Date(event.dueDate),
             // For assignments and exams, set a default duration of 2 hours
             endTime: new Date(new Date(event.dueDate).getTime() + 2 * 60 * 60 * 1000),
+            location: '', // Add empty location by default
             type: event.eventType
           });
         }

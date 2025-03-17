@@ -82,6 +82,7 @@ export const studySessions = pgTable("study_sessions", {
   startTime: timestamp("start_time").notNull(),
   endTime: timestamp("end_time").notNull(),
   calendarEventId: text("calendar_event_id"),
+  location: text("location"),
   // Added fields for connecting sessions to course events
   eventType: text("event_type"),
   relatedEventId: integer("related_event_id"),
@@ -154,6 +155,7 @@ export const insertStudySessionSchema = createInsertSchema(studySessions).pick({
   startTime: true,
   endTime: true,
   calendarEventId: true,
+  location: true,
   eventType: true,
   relatedEventId: true,
 });
