@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, X } from 'lucide-react';
 
+// Define BeforeInstallPromptEvent interface for TypeScript
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
-// Declaring the global deferredPrompt variable
+// Extend Window interface to add deferredPrompt property
 declare global {
   interface Window {
     deferredPrompt?: BeforeInstallPromptEvent;
@@ -15,120 +15,143 @@ declare global {
 }
 
 export const PWAInstallPrompt = () => {
-  const [installable, setInstallable] = useState(false);
-  const [showIOSGuide, setShowIOSGuide] = useState(false);
-  
-  // Check if the device is iOS
-  const isIOS = () => {
-    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-  };
-  
-  // Check if the app is already in standalone mode (installed)
-  const isInStandaloneMode = () => {
-    return window.matchMedia('(display-mode: standalone)').matches || 
-           (window.navigator as any).standalone === true;
-  };
-  
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [isIOSDevice, setIsIOSDevice] = useState(false);
+  const [showPrompt, setShowPrompt] = useState(false);
+  const [showIOSInstructions, setShowIOSInstructions] = useState(false);
+
+  // Check if app is already installed in standalone mode
+  const isAppInstalled = () => 
+    window.matchMedia('(display-mode: standalone)').matches || 
+    window.navigator.standalone === true;
+
+  // Check if device is iOS
+  const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
   useEffect(() => {
-    // For iOS devices, show the guide if not in standalone mode
-    if (isIOS() && !isInStandaloneMode()) {
-      setShowIOSGuide(true);
+    // If already in standalone mode, don't show install prompts
+    if (isAppInstalled()) {
+      return;
     }
-    
-    // For other devices, listen for the beforeinstallprompt event
-    const handleBeforeInstallPrompt = (e: Event) => {
-      // Prevent Chrome 67 and earlier from automatically showing the prompt
+
+    // Check if device is iOS (to show special instructions)
+    const iosDevice = isIOS();
+    setIsIOSDevice(iosDevice);
+
+    // For iOS, check if we should show special instructions
+    if (iosDevice) {
+      const dismissed = localStorage.getItem('iosInstallDismissed');
+      setShowIOSInstructions(!dismissed);
+      return;
+    }
+
+    // For other devices, listen for beforeinstallprompt event
+    const savePrompt = (e: Event) => {
       e.preventDefault();
-      // Stash the event so it can be triggered later
-      window.deferredPrompt = e as BeforeInstallPromptEvent;
-      // Show the install button
-      setInstallable(true);
+      const promptEvent = e as BeforeInstallPromptEvent;
+      setInstallPrompt(promptEvent);
+      
+      // Check if user previously dismissed the prompt
+      const dismissed = localStorage.getItem('installPromptDismissed');
+      if (!dismissed) {
+        setShowPrompt(true);
+      }
     };
-    
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    
-    // Listen for app installed event to hide the prompt
-    window.addEventListener('appinstalled', () => {
-      setInstallable(false);
-      window.deferredPrompt = undefined;
-    });
-    
+
+    window.addEventListener('beforeinstallprompt', savePrompt);
+
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      window.removeEventListener('appinstalled', () => {});
+      window.removeEventListener('beforeinstallprompt', savePrompt);
     };
   }, []);
-  
-  const handleInstallClick = async () => {
-    if (!window.deferredPrompt) return;
+
+  // Handle install button click
+  const handleInstall = async () => {
+    if (!installPrompt) return;
+
+    // Show installation prompt
+    await installPrompt.prompt();
     
-    // Show the install prompt
-    window.deferredPrompt.prompt();
-    
-    // Wait for the user to respond to the prompt
-    const { outcome } = await window.deferredPrompt.userChoice;
-    
-    // Clear the saved prompt since it can't be used again
-    window.deferredPrompt = undefined;
-    
-    // Hide the install button regardless of outcome
-    setInstallable(false);
+    // Get user's choice
+    const { outcome } = await installPrompt.userChoice;
+    console.log(`PWA installation outcome: ${outcome}`);
+
+    // Clear the prompt and hide the installation notification
+    setInstallPrompt(null);
+    setShowPrompt(false);
   };
-  
-  const closeIOSGuide = () => {
-    setShowIOSGuide(false);
-    // Store in localStorage to avoid showing again in the same session
-    localStorage.setItem('iosInstallGuideShown', 'true');
+
+  // Dismiss prompt and remember user's choice
+  const dismissPrompt = () => {
+    setShowPrompt(false);
+    localStorage.setItem('installPromptDismissed', 'true');
   };
-  
-  if (!installable && !showIOSGuide) return null;
-  
-  if (showIOSGuide) {
-    // Show iOS installation guide
-    return (
-      <div className="fixed bottom-4 left-4 right-4 bg-card rounded-lg shadow-lg border p-4 z-50 animate-in fade-in slide-in-from-bottom-5">
-        <div className="flex justify-between items-start mb-2">
-          <h3 className="font-semibold text-lg">Install CourseAgenda</h3>
-          <Button variant="ghost" size="icon" onClick={closeIOSGuide} className="-mt-1 -mr-1">
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-        <p className="text-sm text-muted-foreground mb-3">
-          To install CourseAgenda on your iPhone/iPad:
-        </p>
-        <ol className="text-sm space-y-2 mb-4 list-decimal pl-5">
-          <li>Tap the <span className="inline-flex items-center"><svg className="h-4 w-4 mx-1" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg> Share</span> button</li>
-          <li>Scroll down and tap <strong>"Add to Home Screen"</strong></li>
-          <li>Tap <strong>"Add"</strong> in the top-right corner</li>
-        </ol>
-        <div className="flex justify-end">
-          <Button variant="secondary" size="sm" onClick={closeIOSGuide}>
-            Got it
-          </Button>
-        </div>
-      </div>
-    );
+
+  // Dismiss iOS instructions and remember user's choice
+  const dismissIOSInstructions = () => {
+    setShowIOSInstructions(false);
+    localStorage.setItem('iosInstallDismissed', 'true');
+  };
+
+  // If nothing to show, render nothing
+  if ((!isIOSDevice && !showPrompt) || (isIOSDevice && !showIOSInstructions)) {
+    return null;
   }
-  
-  // Show install button for Android and other platforms
+
+  // Render different UI based on device type
   return (
-    <div className="fixed bottom-4 left-4 right-4 bg-card rounded-lg shadow-lg border p-4 z-50 animate-in fade-in slide-in-from-bottom-5">
-      <div className="flex justify-between items-start mb-2">
-        <h3 className="font-semibold text-lg">Install CourseAgenda</h3>
-        <Button variant="ghost" size="icon" onClick={() => setInstallable(false)} className="-mt-1 -mr-1">
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
-      <p className="text-sm text-muted-foreground mb-4">
-        Install CourseAgenda on your device for a better experience, offline access, and quick launch from your home screen.
-      </p>
-      <div className="flex justify-end">
-        <Button onClick={handleInstallClick} size="sm" className="flex items-center">
-          <Download className="mr-2 h-4 w-4" />
-          Install App
-        </Button>
-      </div>
-    </div>
+    <>
+      {/* Standard install prompt for non-iOS devices */}
+      {!isIOSDevice && showPrompt && (
+        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-primary text-white p-4 rounded-lg shadow-lg z-50 w-[90%] max-w-md">
+          <div className="flex justify-between items-start mb-2">
+            <div>
+              <h3 className="font-bold text-lg">Install CourseAgenda</h3>
+              <p className="text-sm">Add to your home screen for the best experience</p>
+            </div>
+            <button 
+              onClick={dismissPrompt}
+              className="text-white hover:text-gray-200"
+              aria-label="Dismiss"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="flex justify-end mt-2">
+            <Button 
+              onClick={handleInstall}
+              className="bg-white text-primary hover:bg-gray-100"
+            >
+              Install Now
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* iOS specific instructions */}
+      {isIOSDevice && showIOSInstructions && (
+        <div className="fixed top-0 left-0 right-0 bg-slate-50 text-slate-900 p-3 z-50 border-b border-slate-200">
+          <div className="flex justify-between items-start">
+            <p className="text-sm">
+              To install this app: tap <span className="inline-block mx-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M8 10h8"/><path d="M12 14V6"/><path d="M9 17H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-3"/>
+                  <path d="M12 17v5"/><path d="m15 19-3-2-3 2"/>
+                </svg>
+              </span> 
+              then <strong>Add to Home Screen</strong>
+            </p>
+            <button 
+              onClick={dismissIOSInstructions}
+              className="text-slate-500 hover:text-slate-700" 
+              aria-label="Dismiss"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

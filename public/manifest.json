@@ -1,113 +1,118 @@
 {
-  "name": "CourseAgenda - Study Assistant",
+  "name": "CourseAgenda",
   "short_name": "CourseAgenda",
-  "description": "Transform your syllabus into a personalized study plan with calendar integration",
-  "start_url": "/",
-  "display": "standalone",
+  "description": "An AI-powered study assistant for transforming course syllabi into personalized study plans",
+  "theme_color": "#4f46e5",
   "background_color": "#ffffff",
-  "theme_color": "#6366f1",
-  "orientation": "portrait-primary",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/",
+  "start_url": "/",
   "icons": [
     {
-      "src": "/icons/icon-72x72.png",
+      "src": "icons/icon-72x72.png",
       "sizes": "72x72",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
-      "src": "/icons/icon-96x96.png",
+      "src": "icons/icon-96x96.png",
       "sizes": "96x96",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
-      "src": "/icons/icon-128x128.png",
+      "src": "icons/icon-128x128.png",
       "sizes": "128x128",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
-      "src": "/icons/icon-144x144.png",
+      "src": "icons/icon-144x144.png",
       "sizes": "144x144",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
-      "src": "/icons/icon-152x152.png",
+      "src": "icons/icon-152x152.png",
       "sizes": "152x152",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
-      "src": "/icons/icon-192x192.png",
+      "src": "icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
-      "src": "/icons/icon-384x384.png",
+      "src": "icons/icon-384x384.png",
       "sizes": "384x384",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
-      "src": "/icons/icon-512x512.png",
+      "src": "icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
   ],
-  "shortcuts": [
-    {
-      "name": "Upload Syllabus",
-      "url": "/upload",
-      "description": "Upload a new syllabus",
-      "icons": [
-        {
-          "src": "/icons/icon-96x96.png",
-          "sizes": "96x96",
-          "type": "image/png"
-        }
-      ]
-    },
-    {
-      "name": "My Courses",
-      "url": "/courses",
-      "description": "View your courses",
-      "icons": [
-        {
-          "src": "/icons/icon-96x96.png",
-          "sizes": "96x96",
-          "type": "image/png"
-        }
-      ]
-    }
-  ],
+  "splash_pages": null,
   "screenshots": [
     {
-      "src": "/screenshots/mobile-home.png",
-      "sizes": "390x844",
+      "src": "screenshots/mobile-home.png",
+      "sizes": "750x1334",
       "type": "image/png",
-      "form_factor": "narrow",
-      "label": "CourseAgenda Home Screen"
+      "platform": "narrow",
+      "label": "Home Screen of CourseAgenda"
     },
     {
-      "src": "/screenshots/mobile-calendar.png",
-      "sizes": "390x844",
+      "src": "screenshots/mobile-syllabus.png",
+      "sizes": "750x1334",
       "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Calendar Integration"
+      "platform": "narrow",
+      "label": "Syllabus Upload Screen"
+    },
+    {
+      "src": "screenshots/mobile-plan.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "platform": "narrow", 
+      "label": "Study Plan Creation"
+    },
+    {
+      "src": "screenshots/desktop-home.png",
+      "sizes": "1280x800",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Desktop Home Screen"
+    },
+    {
+      "src": "screenshots/desktop-analysis.png", 
+      "sizes": "1280x800",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Syllabus Analysis View"
     }
   ],
   "categories": ["education", "productivity"],
-  "dir": "ltr",
+  "shortcuts": [
+    {
+      "name": "Upload Syllabus",
+      "short_name": "Upload",
+      "description": "Upload a new course syllabus",
+      "url": "/upload-syllabus",
+      "icons": [{ "src": "icons/upload-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "My Study Plans",
+      "short_name": "Plans",
+      "description": "View your study plans",
+      "url": "/",
+      "icons": [{ "src": "icons/plans-96x96.png", "sizes": "96x96" }]
+    }
+  ],
   "lang": "en-US",
-  "scope": "/",
-  "related_applications": []
+  "prefer_related_applications": false
 }

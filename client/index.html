@@ -30,25 +30,7 @@
   <script src="/pdf-worker-loader.js"></script>
   
   <!-- PWA Service Worker Registration -->
-  <script>
-    // Only register service worker in production
-    if ('serviceWorker' in navigator && window.location.hostname !== 'localhost') {
-      window.addEventListener('load', () => {
-        // Use a timeout to ensure the page is fully loaded
-        setTimeout(() => {
-          navigator.serviceWorker.register('/service-worker.js')
-            .then(registration => {
-              console.log('PWA: Service Worker registered with scope:', registration.scope);
-            })
-            .catch(error => {
-              console.warn('PWA: Service Worker registration not completed:', error.message);
-            });
-        }, 1000);
-      });
-    } else {
-      console.log('PWA: Service Worker not registered (development mode)');
-    }
-  </script>
+  <script src="/register-sw.js"></script>
   
   <style>
     /* PWA Install Banner Styles */

@@ -1,71 +1,112 @@
-// Service Worker Registration Script
-(() => {
-  // Only register service worker in production or when supported
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js')
-        .then(registration => {
-          console.log('Service Worker registered with scope:', registration.scope);
+/**
+ * Service Worker Registration for CourseAgenda PWA
+ */
+
+// Check if service workers are supported by the browser
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(registration => {
+        console.log('PWA: Service Worker registered successfully:', registration.scope);
+        
+        // Check for updates to the service worker
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          console.log('PWA: New service worker installing...');
           
-          // Check for updates on page refresh
-          registration.update();
-          
-          // Handle new service worker installation
-          registration.addEventListener('updatefound', () => {
-            const newWorker = registration.installing;
-            console.log('Service Worker update found, installing...');
-            
-            // Listen for the new service worker's state changes
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                // New content is available, show notification to the user
-                console.log('New Service Worker installed, content is available');
-                showUpdateNotification();
-              }
-            });
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              // There's a new service worker available, show update notification
+              console.log('PWA: New service worker installed, update available');
+              showUpdateNotification();
+            }
           });
-        })
-        .catch(error => {
-          console.error('Service Worker registration failed:', error);
         });
-      
-      // Detect controller change when new service worker activates
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        console.log('New Service Worker controller activated');
+      })
+      .catch(error => {
+        console.warn('PWA: Service Worker registration not completed:', error);
       });
-    });
-    
-    // Setup iOS PWA install banner logic
-    const isIOS = () => {
-      return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    };
-    
-    const isInStandaloneMode = () => {
-      return window.matchMedia('(display-mode: standalone)').matches || 
-             window.navigator.standalone === true;
-    };
-    
-    // Handle the iOS-specific installation banner
-    window.addEventListener('load', () => {
-      if (isIOS() && !isInStandaloneMode() && !localStorage.getItem('iosInstallPromptShown')) {
-        const iosMessage = document.getElementById('ios-install-message');
-        if (iosMessage) {
-          iosMessage.style.display = 'block';
-          localStorage.setItem('iosInstallPromptShown', 'true');
-        }
-      }
-    });
-  }
+  });
   
-  // Function to show update notification
-  function showUpdateNotification() {
-    // Create a banner or use an existing element to notify the user
-    // For now we'll just log to console, but in a real app you'd show UI
-    console.log('New version available! Refresh the page to update.');
-    
-    // You could also show a toast notification here
-    if (window.confirm('A new version of the app is available. Reload now to update?')) {
+  // Listen for controlling service worker changes (update activated)
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!refreshing) {
+      refreshing = true;
+      console.log('PWA: New service worker activated, reloading for updates');
       window.location.reload();
     }
+  });
+}
+
+// Function to show update notification
+function showUpdateNotification() {
+  const updateNotification = document.createElement('div');
+  updateNotification.className = 'update-notification';
+  updateNotification.innerHTML = `
+    <div class="update-content">
+      <p><strong>Update Available!</strong> Refresh to get the latest version.</p>
+      <div class="update-actions">
+        <button id="update-now">Update Now</button>
+        <button id="update-later">Later</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(updateNotification);
+  
+  // Set up styles for the notification
+  updateNotification.style.position = 'fixed';
+  updateNotification.style.bottom = '20px';
+  updateNotification.style.left = '50%';
+  updateNotification.style.transform = 'translateX(-50%)';
+  updateNotification.style.backgroundColor = '#4f46e5';
+  updateNotification.style.color = 'white';
+  updateNotification.style.padding = '12px 20px';
+  updateNotification.style.borderRadius = '8px';
+  updateNotification.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+  updateNotification.style.zIndex = '9999';
+  updateNotification.style.maxWidth = '90%';
+  updateNotification.style.width = '400px';
+  updateNotification.style.display = 'flex';
+  updateNotification.style.justifyContent = 'space-between';
+  updateNotification.style.alignItems = 'center';
+  
+  // Handle button clicks
+  document.getElementById('update-now').addEventListener('click', () => {
+    window.location.reload();
+  });
+  
+  document.getElementById('update-later').addEventListener('click', () => {
+    updateNotification.remove();
+  });
+}
+
+// Check if the app is being launched from the homescreen (in standalone mode)
+if (window.matchMedia('(display-mode: standalone)').matches) {
+  console.log('PWA: Running in standalone mode (installed as PWA)');
+  // Here we could enhance the UI for installed PWA mode
+  
+  // Track PWA usage in analytics
+  if (typeof gtag === 'function') {
+    gtag('event', 'pwa_launch', {
+      'app_mode': 'standalone'
+    });
   }
-})();
+}
+
+// Listen for app install event (for analytics)
+window.addEventListener('appinstalled', () => {
+  console.log('PWA: App was installed to device');
+  
+  // Track successful installation in analytics
+  if (typeof gtag === 'function') {
+    gtag('event', 'pwa_installed');
+  }
+  
+  // Hide any install prompts after installation
+  const pwaNotification = document.getElementById('pwa-notification');
+  if (pwaNotification) {
+    pwaNotification.style.display = 'none';
+  }
+});

@@ -4,6 +4,7 @@ import MobileNavigation from "./MobileNavigation";
 import Footer from "./Footer";
 import { useLocation } from "wouter";
 import { useReplitAuth } from "@/hooks/use-replit-auth";
+import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 
 interface MainLayoutProps {
   children: ReactNode;
