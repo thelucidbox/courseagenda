@@ -63,7 +63,18 @@ app.use((req, res, next) => {
   next();
 });
 
+// Import database functions
+import { runMigrations } from "./db";
+
 (async () => {
+  // Run database migrations on startup
+  try {
+    await runMigrations();
+    console.log("Database migrations completed successfully");
+  } catch (error) {
+    console.error("Database migration error:", error);
+  }
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

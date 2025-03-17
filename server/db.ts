@@ -11,7 +11,7 @@ const migrationClient = postgres(process.env.DATABASE_URL!, { max: 1 });
 export async function runMigrations() {
   try {
     log("Running migrations...", "database");
-    await migrate(drizzle(migrationClient), { migrationsFolder: "drizzle" });
+    await migrate(drizzle(migrationClient), { migrationsFolder: "migrations" });
     log("Migrations completed successfully", "database");
   } catch (error) {
     console.error("Migration failed:", error);
