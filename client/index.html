@@ -2,15 +2,103 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>CourseAgenda - Your Personal Study Assistant</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik00IDYgQSAyIDIgMCAwIDEgNiA0IEggMTggQSAyIDIgMCAwIDEgMjAgNiBWIDIwIGwgLTYgLTIgbCAtMiAwLjY3IGwgLTIgLTAuNjcgbCAtNiAyIFYgNiBaIiBmaWxsPSIjNGY0NmU1Ii8+PHBhdGggZD0iTTEyIDExIEwgMTIgMTciIHN0cm9rZT0id2hpdGUiLz48cGF0aCBkPSJNOSAxNCBMIDE1IDE0IiBzdHJva2U9IndoaXRlIi8+PC9zdmc+">
+  
+  <!-- PWA Meta Tags -->
+  <meta name="description" content="Transform your syllabus into a personalized study plan with calendar integration">
+  <meta name="theme-color" content="#6366f1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CourseAgenda">
+  <meta name="application-name" content="CourseAgenda">
+  <meta name="format-detection" content="telephone=no">
+  
+  <!-- PWA Icons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <link rel="mask-icon" href="/icons/app-icon.svg" color="#6366f1">
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/manifest.json">
+  
+  <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
   <!-- PDF.js worker configuration -->
   <script src="/pdf-worker-loader.js"></script>
+  
+  <!-- PWA Service Worker Registration -->
+  <script>
+    // Simple service worker registration
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(registration => {
+            console.log('Service Worker registered with scope:', registration.scope);
+          })
+          .catch(error => {
+            console.error('Service Worker registration failed:', error);
+          });
+      });
+    }
+  </script>
+  
+  <style>
+    /* PWA Install Banner Styles */
+    #pwa-notification {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-color: #6366f1;
+      color: white;
+      padding: 12px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 9999;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    #pwa-notification button {
+      background-color: white;
+      color: #6366f1;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    
+    #ios-install-message {
+      display: none;
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 4px;
+      background-color: #f8fafc;
+      border: 1px solid #e2e8f0;
+      font-size: 14px;
+    }
+  </style>
 </head>
 <body>
   <div id="root"></div>
+  
+  <!-- PWA Install Banner -->
+  <div id="pwa-notification">
+    <div>
+      <strong>Install CourseAgenda App</strong>
+      <p>Add to your home screen for the best experience</p>
+    </div>
+    <button id="add-to-home">Install</button>
+  </div>
+  
+  <div id="ios-install-message">
+    <p>To install this app on your iPhone/iPad: tap <strong>Share</strong> and then <strong>Add to Home Screen</strong></p>
+  </div>
+  
   <script type="module" src="/src/main.tsx"></script>
 </body>
 </html>
