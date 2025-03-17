@@ -13,6 +13,7 @@ import Courses from "@/pages/Courses";
 import CalendarIntegration from "@/pages/CalendarIntegration";
 import Profile from "@/pages/Profile";
 import Landing from "@/pages/Landing";
+import Admin from "@/pages/Admin";
 // Import directly using relative path instead of alias to fix the module resolution
 import CalendarPermissions from "./pages/CalendarPermissions";
 import CalendarSuccess from "./pages/CalendarSuccess";
@@ -42,6 +43,7 @@ function Router() {
       <Route path="/calendar/success" component={CalendarSuccess} />
       <Route path="/calendar/error" component={CalendarError} />
       <Route path="/profile" component={Profile} />
+      <Route path="/admin" component={Admin} />
       <Route component={NotFound} />
     </Switch>
   );

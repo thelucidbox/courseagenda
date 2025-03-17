@@ -143,7 +143,7 @@ const Header = () => {
             </>
           ) : (
             <Button onClick={login}>
-              Log in with Replit
+              Sign in / Create Account
             </Button>
           )}
         </div>
