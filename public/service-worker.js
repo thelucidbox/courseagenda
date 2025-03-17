@@ -1,59 +1,49 @@
-// Service Worker for CourseAgenda PWA
+// Basic Service Worker for CourseAgenda PWA
 const CACHE_NAME = 'courseagenda-cache-v1';
 
-// List of resources to cache immediately when the service worker is installed
-const PRECACHE_RESOURCES = [
+// Simple cache list - minimal for development
+const CACHE_URLS = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/icons/app-icon.svg',
   '/icons/apple-touch-icon.png',
   '/icons/favicon-32x32.png',
-  '/icons/favicon-16x16.png',
-  '/icons/icon-72x72.png',
-  '/icons/icon-96x96.png',
-  '/icons/icon-128x128.png',
-  '/icons/icon-144x144.png',
-  '/icons/icon-152x152.png',
-  '/icons/icon-192x192.png',
-  '/icons/icon-384x384.png',
-  '/icons/icon-512x512.png'
+  '/icons/favicon-16x16.png'
 ];
 
-// Resources that should not be cached
-const NO_CACHE_URLS = [
-  '/api/',
-  'chrome-extension://'
-];
-
-// Install event - cache the core static assets
+// Install event
 self.addEventListener('install', (event) => {
-  // Skip waiting forces the waiting service worker to become the active service worker
+  console.log('[Service Worker] Installing');
+  
+  // Activate the service worker immediately
   self.skipWaiting();
-
+  
+  // Cache basic files
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('[Service Worker] Pre-caching resources');
-        return cache.addAll(PRECACHE_RESOURCES);
-      })
-      .catch((error) => {
-        console.error('[Service Worker] Pre-cache error:', error);
+      .then(cache => {
+        console.log('[Service Worker] Caching basic files');
+        return cache.addAll(CACHE_URLS);
       })
   );
 });
 
-// Activate event - clean up old caches
+// Activate event
 self.addEventListener('activate', (event) => {
-  // Claim allows the service worker to immediately take control of all open clients 
-  event.waitUntil(clients.claim());
-
+  console.log('[Service Worker] Activating');
+  
+  // Take control of all clients
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
+    clients.claim()
+  );
+  
+  // Clean up old caches
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
       return Promise.all(
-        cacheNames.map((cacheName) => {
+        cacheNames.map(cacheName => {
           if (cacheName !== CACHE_NAME) {
-            console.log('[Service Worker] Removing old cache:', cacheName);
+            console.log('[Service Worker] Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -62,63 +52,47 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Helper function to determine if a URL should be cached
-function shouldCache(url) {
-  // Don't cache API requests or other dynamic content
-  return !NO_CACHE_URLS.some(nocacheUrl => url.includes(nocacheUrl));
-}
-
-// Fetch event - network-first strategy with fallback to cache
+// Network-first fetch strategy with cache fallback
 self.addEventListener('fetch', (event) => {
-  // Skip cross-origin requests
-  if (!event.request.url.startsWith(self.location.origin) ||
-      event.request.method !== 'GET') {
+  // Skip non-GET requests and API calls
+  if (event.request.method !== 'GET' || event.request.url.includes('/api/')) {
     return;
   }
-
-  // Skip if this shouldn't be cached
-  if (!shouldCache(event.request.url)) {
-    return;
-  }
-
+  
   event.respondWith(
     fetch(event.request)
-      .then((response) => {
-        // Save a copy of the response in the cache
-        if (response.status === 200 && response.type === 'basic') {
-          const clonedResponse = response.clone();
-          caches.open(CACHE_NAME)
-            .then((cache) => {
-              cache.put(event.request, clonedResponse);
-            });
-        }
+      .then(response => {
+        // Clone the response for the cache
+        const responseToCache = response.clone();
+        
+        caches.open(CACHE_NAME)
+          .then(cache => {
+            if (response.status === 200) {
+              cache.put(event.request, responseToCache);
+            }
+          });
+        
         return response;
       })
       .catch(() => {
-        // When network fails, try to serve from cache
+        // Try to get from cache if network fails
         return caches.match(event.request)
-          .then((cachedResponse) => {
+          .then(cachedResponse => {
             if (cachedResponse) {
               return cachedResponse;
             }
             
-            // For navigation requests, serve the index.html as fallback
+            // If it's a navigation request, return the homepage
             if (event.request.mode === 'navigate') {
               return caches.match('/');
             }
             
-            return new Response('Network error occurred', {
-              status: 408,
+            // Otherwise return a simple error
+            return new Response('Network error - app is offline', {
+              status: 503,
               headers: { 'Content-Type': 'text/plain' }
             });
           });
       })
   );
-});
-
-// Listen for messages from the main app
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
 });
