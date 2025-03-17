@@ -38,7 +38,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Filter, Download, Trash2, Edit, UserPlus } from "lucide-react";
+import { Search, Filter, Download, Trash2, Edit, UserPlus, Users, FileText, BookOpen, CalendarDays } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
 // Define user types matching the schema

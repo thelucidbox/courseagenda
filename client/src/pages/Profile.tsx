@@ -112,6 +112,150 @@ export default function Profile() {
           </CardContent>
         </Card>
         
+        {/* Subscription Management Card */}
+        <Card className="bg-gradient-to-br from-background to-background/90 border-primary/20">
+          <CardHeader>
+            <CardTitle>Your Subscription</CardTitle>
+            <CardDescription>
+              Manage your CourseAgenda subscription plan
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">Current Plan</h3>
+                <Badge 
+                  className={user?.subscriptionStatus === 'premium' 
+                    ? 'bg-green-500'
+                    : user?.subscriptionStatus === 'lifetime' 
+                    ? 'bg-purple-600' 
+                    : 'bg-blue-500'
+                  }
+                >
+                  {user?.subscriptionStatus === 'premium' 
+                    ? 'Premium' 
+                    : user?.subscriptionStatus === 'lifetime' 
+                    ? 'Lifetime' 
+                    : 'Free Tier'}
+                </Badge>
+              </div>
+              
+              <div className="space-y-1 mb-4">
+                {user?.subscriptionStatus === 'premium' && (
+                  <>
+                    <p className="text-sm text-muted-foreground">
+                      Your premium subscription is active.
+                    </p>
+                    {user?.subscriptionExpiry && (
+                      <p className="text-sm font-medium">
+                        Renews on: {new Date(user.subscriptionExpiry).toLocaleDateString()}
+                      </p>
+                    )}
+                  </>
+                )}
+                
+                {user?.subscriptionStatus === 'lifetime' && (
+                  <p className="text-sm text-muted-foreground">
+                    You have lifetime access to all premium features. Thank you for your support!
+                  </p>
+                )}
+                
+                {(!user?.subscriptionStatus || user?.subscriptionStatus === 'free') && (
+                  <p className="text-sm text-muted-foreground">
+                    You're currently on the free plan with limited features.
+                  </p>
+                )}
+              </div>
+              
+              <Separator className="my-6" />
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Premium Annual Plan */}
+                <div className="rounded-lg border border-primary/20 p-4 bg-card">
+                  <h4 className="font-medium mb-2">Annual Premium</h4>
+                  <div className="flex items-baseline mb-2">
+                    <span className="text-2xl font-bold">$5</span>
+                    <span className="text-muted-foreground ml-1">/year</span>
+                  </div>
+                  <ul className="space-y-2 mb-4 text-sm">
+                    <li className="flex items-center">
+                      <svg className="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                      Unlimited syllabus uploads
+                    </li>
+                    <li className="flex items-center">
+                      <svg className="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                      Calendar integrations
+                    </li>
+                    <li className="flex items-center">
+                      <svg className="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                      Study session reminders
+                    </li>
+                  </ul>
+                  <Button 
+                    className="w-full" 
+                    disabled={user?.subscriptionStatus === 'premium' || user?.subscriptionStatus === 'lifetime'}
+                  >
+                    {user?.subscriptionStatus === 'premium' 
+                      ? 'Current Plan' 
+                      : user?.subscriptionStatus === 'lifetime' 
+                      ? 'Already on Lifetime' 
+                      : 'Upgrade to Premium'}
+                  </Button>
+                </div>
+                
+                {/* Lifetime Plan */}
+                <div className="rounded-lg border border-primary/20 p-4 bg-card relative overflow-hidden">
+                  {/* Best Value Badge */}
+                  <div className="absolute right-0 top-0">
+                    <div className="bg-primary text-primary-foreground text-xs font-medium px-2 py-1 transform translate-x-[40%] translate-y-[-30%] rotate-45">
+                      Best Value
+                    </div>
+                  </div>
+                  
+                  <h4 className="font-medium mb-2">Lifetime Access</h4>
+                  <div className="flex items-baseline mb-2">
+                    <span className="text-2xl font-bold">$50</span>
+                    <span className="text-muted-foreground ml-1">one-time</span>
+                  </div>
+                  <ul className="space-y-2 mb-4 text-sm">
+                    <li className="flex items-center">
+                      <svg className="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                      Everything in Premium
+                    </li>
+                    <li className="flex items-center">
+                      <svg className="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                      No annual renewals
+                    </li>
+                    <li className="flex items-center">
+                      <svg className="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                      Support future development
+                    </li>
+                  </ul>
+                  <Button 
+                    variant="outline"
+                    className="w-full border-primary border-2 hover:bg-primary hover:text-primary-foreground" 
+                    disabled={user?.subscriptionStatus === 'lifetime'}
+                  >
+                    {user?.subscriptionStatus === 'lifetime' ? 'Current Plan' : 'Get Lifetime Access'}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
         {/* Calendar Integrations Card */}
         <Card>
           <CardHeader>
