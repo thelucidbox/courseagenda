@@ -12,12 +12,25 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useReplitAuth } from "@/hooks/use-replit-auth";
 import { getInitials } from "@/lib/utils";
 import { useMobile } from "@/hooks/use-mobile";
-import { CalendarRange, LogOut, UserCircle, BookOpen, Home, Upload } from "lucide-react";
+import { 
+  CalendarRange, 
+  LogOut, 
+  UserCircle, 
+  BookOpen, 
+  Home, 
+  Upload, 
+  Sun, 
+  Moon, 
+  Lightbulb,
+  CreditCard
+} from "lucide-react";
+import { useTheme } from "@/hooks/use-theme";
 
 const Header = () => {
   const [location] = useLocation();
   const { user, isAuthenticated, login, logout } = useReplitAuth();
   const { isMobile } = useMobile();
+  const { theme, setTheme } = useTheme();
 
   // Only show the mobile menu toggle on mobile devices
   if (isMobile) {
@@ -36,7 +49,7 @@ const Header = () => {
         <div className="mr-4 flex">
           <Link href="/" className="flex items-center space-x-2">
             <CalendarRange className="h-6 w-6" />
-            <span className="font-bold text-lg md:inline-block">StudyPlanner</span>
+            <span className="font-bold text-lg md:inline-block">CourseAgenda</span>
           </Link>
         </div>
         
@@ -57,39 +70,74 @@ const Header = () => {
         </nav>
         
         <div className="flex-1 flex justify-end items-center gap-2">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="mr-2" 
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            aria-label="Toggle theme"
+          >
+            {theme === 'dark' ? (
+              <Sun className="h-[1.2rem] w-[1.2rem]" />
+            ) : (
+              <Moon className="h-[1.2rem] w-[1.2rem]" />
+            )}
+          </Button>
+
           {isAuthenticated ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage 
-                      src={user?.profileImage} 
-                      alt={user?.name || user?.username} 
-                    />
-                    <AvatarFallback>{getInitials(user?.name || user?.username || "")}</AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user?.name || user?.username}</p>
-                    <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/profile">
-                    <UserCircle className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={logout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <>
+              <Button variant="outline" size="sm" className="mr-2 hidden md:flex">
+                <CreditCard className="mr-2 h-4 w-4" />
+                <span>Subscription</span>
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage 
+                        src={user?.profileImage} 
+                        alt={user?.name || user?.username} 
+                      />
+                      <AvatarFallback>{getInitials(user?.name || user?.username || "")}</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{user?.name || user?.username}</p>
+                      <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile">
+                      <UserCircle className="mr-2 h-4 w-4" />
+                      <span>Profile</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/subscription">
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      <span>Subscription</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+                    {theme === 'dark' ? (
+                      <Sun className="mr-2 h-4 w-4" />
+                    ) : (
+                      <Moon className="mr-2 h-4 w-4" />
+                    )}
+                    <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={logout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
           ) : (
             <Button onClick={login}>
               Log in with Replit
