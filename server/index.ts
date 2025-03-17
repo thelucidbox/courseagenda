@@ -4,10 +4,42 @@ import { setupVite, serveStatic, log } from "./vite";
 import path from "path";
 import fs from "fs";
 import { errorHandler } from "./utils/error-handler";
+import rateLimit from "express-rate-limit";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Add security headers
+app.use((req, res, next) => {
+  // Help protect against XSS attacks
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  
+  // Prevent MIME-sniffing
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  
+  // Control iframe embedding
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  
+  // Strict Transport Security (only in production)
+  if (process.env.NODE_ENV === 'production') {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
+  
+  next();
+});
+
+// Rate limiting middleware for API endpoints
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again after 15 minutes',
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
+// Apply rate limiting to API routes only
+app.use('/api', apiLimiter);
 
 // Special middleware to handle service worker files with proper MIME types
 app.get('/service-worker.js', (req, res) => {
@@ -67,7 +99,44 @@ app.use((req, res, next) => {
 // Import database functions
 import { runMigrations } from "./db";
 
+// Function to validate required environment variables
+function validateEnvironment(): boolean {
+  const requiredVariables = [
+    'DATABASE_URL', 
+    'SESSION_SECRET',
+    'GEMINI_API_KEY'
+  ];
+  
+  const optionalVariables = [
+    'GOOGLE_OAUTH_CLIENT_ID',
+    'GOOGLE_OAUTH_CLIENT_SECRET',
+    'REPLIT_DOMAINS',
+    'REPL_ID'
+  ];
+  
+  const missingVariables = requiredVariables.filter(varName => !process.env[varName]);
+  
+  if (missingVariables.length > 0) {
+    console.error('ERROR: Missing required environment variables:', missingVariables);
+    return false;
+  }
+  
+  // Log optional variables that might be missing
+  const missingOptionalVars = optionalVariables.filter(varName => !process.env[varName]);
+  if (missingOptionalVars.length > 0) {
+    console.warn('WARNING: Some optional environment variables are missing:', missingOptionalVars);
+  }
+  
+  return true;
+}
+
 (async () => {
+  // Validate environment configuration
+  const envValid = validateEnvironment();
+  if (!envValid) {
+    console.error('Environment validation failed. Some features may not work correctly.');
+  }
+
   // Run database migrations on startup
   try {
     await runMigrations();

@@ -2,6 +2,7 @@ import { Router, type Express, type Response, type NextFunction } from "express"
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { checkDatabase } from "./db";
+import rateLimit from "express-rate-limit";
 import { 
   insertSyllabusSchema, 
   insertCourseEventSchema, 
@@ -131,8 +132,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     // For development, fallback to user ID 1
-    // In production, this should be removed and proper auth enforced
+    // In production, this fallback is disabled and proper auth is enforced
     if (process.env.NODE_ENV !== 'production') {
+      console.log('DEV MODE: Using fallback authentication with user ID 1');
       req.userId = 1;
       return next();
     }
@@ -157,8 +159,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   };
 
+  // Additional rate limiter specifically for file uploads (more strict than general API rate limiter)
+  const uploadLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 5, // Limit each IP to 5 uploads per hour
+    message: 'Too many file uploads from this IP, please try again after an hour',
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+  
   // PDF upload endpoint
-  apiRouter.post('/syllabi/upload', upload.single('file'), async (req, res) => {
+  apiRouter.post('/syllabi/upload', uploadLimiter, upload.single('file'), async (req, res) => {
     try {
       console.log('Received syllabus upload request');
       
