@@ -1,6 +1,7 @@
 import { Router, type Express, type Response, type NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { checkDatabase } from "./db";
 import { 
   insertSyllabusSchema, 
   insertCourseEventSchema, 
@@ -814,6 +815,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error getting admin stats:', error);
       return res.status(500).json({ message: 'Failed to get system stats' });
+    }
+  });
+
+  // Health check endpoint for monitoring and deployment
+  app.get('/health', async (req, res) => {
+    try {
+      // Check database connection
+      const dbStatus = await checkDatabase();
+      
+      // Basic health information
+      const healthInfo = {
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        version: process.env.npm_package_version || '1.0.0',
+        environment: process.env.NODE_ENV || 'development',
+        database: {
+          connected: dbStatus
+        },
+        memory: {
+          heapTotal: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
+          heapUsed: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+          external: Math.round(process.memoryUsage().external / 1024 / 1024),
+          rss: Math.round(process.memoryUsage().rss / 1024 / 1024)
+        },
+        uptime: Math.round(process.uptime())
+      };
+      
+      // If database is not connected, report error
+      if (!dbStatus) {
+        healthInfo.status = 'error';
+        return res.status(500).json(healthInfo);
+      }
+      
+      return res.status(200).json(healthInfo);
+    } catch (error) {
+      // If any check fails, report error
+      return res.status(500).json({
+        status: 'error',
+        timestamp: new Date().toISOString(),
+        error: error instanceof Error ? error.message : 'Unknown error',
+        uptime: Math.round(process.uptime())
+      });
     }
   });
 
