@@ -57,8 +57,8 @@ export function useCalendarIntegration() {
           // First, fetch events from server if we have a study plan ID
           try {
             // Call the API to get all events
-            const fetchEvents = getQueryFn<StudyPlanEvent[]>({ on401: "throw" });
-            const response = await fetchEvents(`/api/study-plans/${studyPlanId}/events`);
+            const response = await apiRequest('GET', `/api/study-plans/${studyPlanId}/events`)
+              .then(res => res.json());
             
             if (!response || !Array.isArray(response)) {
               throw new Error('Invalid response from API');
@@ -96,13 +96,10 @@ export function useCalendarIntegration() {
             downloadMultiEventICSFile(calendarEvents, `study_plan_${studyPlanId}`);
             
             // Mark as integrated in the database
-            await apiRequest<{ message: string }>(`/api/study-plans/${studyPlanId}/calendar-integration`, {
-              method: 'POST',
-              body: {
-                provider: 'ics',
-                includeStudySessions,
-                courseSchedule
-              }
+            await apiRequest('POST', `/api/study-plans/${studyPlanId}/calendar-integration`, {
+              provider: 'ics',
+              includeStudySessions,
+              courseSchedule
             });
             
             queryClient.invalidateQueries({ queryKey: ['/api/study-plans'] });

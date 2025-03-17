@@ -106,6 +106,23 @@ const AdminPage = () => {
       }
     }
   });
+  
+  // Fetch system stats
+  const { data: systemStats = { userCount: 0, syllabusCount: 0, studyPlanCount: 0, studySessionCount: 0 }, isLoading: isLoadingStats } = useQuery({
+    queryKey: ['/api/admin/stats'],
+    queryFn: async () => {
+      try {
+        const response = await apiRequest('GET', '/api/admin/stats');
+        if (!response.ok) {
+          throw new Error('Failed to fetch system stats');
+        }
+        return response.json();
+      } catch (error) {
+        console.error("Error fetching stats:", error);
+        return { userCount: 0, syllabusCount: 0, studyPlanCount: 0, studySessionCount: 0 };
+      }
+    }
+  });
 
   // Update user role
   const updateUserMutation = useMutation({

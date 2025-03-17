@@ -318,6 +318,7 @@ export class MemStorage implements IStorage {
       id,
       description: insertSession.description ?? null,
       calendarEventId: insertSession.calendarEventId ?? null,
+      location: insertSession.location ?? null,
       eventType: insertSession.eventType ?? null,
       relatedEventId: insertSession.relatedEventId ?? null
     };
