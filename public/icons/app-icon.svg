@@ -1,43 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background -->
   <rect width="512" height="512" rx="128" fill="#6366F1"/>
-  
-  <!-- Calendar Icon -->
-  <rect x="112" y="128" width="288" height="288" rx="24" fill="white"/>
-  
-  <!-- Calendar Lines -->
-  <rect x="144" y="176" width="224" height="8" rx="4" fill="#6366F1" opacity="0.6"/>
-  <rect x="144" y="224" width="224" height="8" rx="4" fill="#6366F1" opacity="0.6"/>
-  <rect x="144" y="272" width="224" height="8" rx="4" fill="#6366F1" opacity="0.6"/>
-  <rect x="144" y="320" width="224" height="8" rx="4" fill="#6366F1" opacity="0.6"/>
-  <rect x="144" y="368" width="224" height="8" rx="4" fill="#6366F1" opacity="0.6"/>
-  
-  <!-- Calendar Top -->
-  <rect x="112" y="128" width="288" height="48" rx="24" fill="#6366F1"/>
-  
-  <!-- Calendar Dots (Day indicators) -->
-  <circle cx="160" y="200" r="8" fill="#6366F1"/>
-  <circle cx="208" y="200" r="8" fill="#6366F1"/>
-  <circle cx="256" y="200" r="8" fill="#6366F1"/>
-  <circle cx="304" y="200" r="8" fill="#6366F1"/>
-  <circle cx="352" y="200" r="8" fill="#6366F1"/>
-  
-  <circle cx="160" y="248" r="8" fill="#6366F1"/>
-  <circle cx="208" y="248" r="8" fill="#6366F1"/>
-  <circle cx="256" y="248" r="8" fill="#6366F1"/>
-  <circle cx="304" y="248" r="12" fill="#6366F1"/>
-  <circle cx="352" y="248" r="8" fill="#6366F1"/>
-  
-  <circle cx="160" y="296" r="8" fill="#6366F1"/>
-  <circle cx="208" y="296" r="8" fill="#6366F1"/>
-  <circle cx="256" y="296" r="12" fill="#6366F1"/>
-  <circle cx="304" y="296" r="8" fill="#6366F1"/>
-  <circle cx="352" y="296" r="8" fill="#6366F1"/>
-  
-  <circle cx="160" y="344" r="8" fill="#6366F1"/>
-  <circle cx="208" y="344" r="12" fill="#6366F1"/>
-  <circle cx="256" y="344" r="8" fill="#6366F1"/>
-  <circle cx="304" y="344" r="8" fill="#6366F1"/>
-  <circle cx="352" y="344" r="8" fill="#6366F1"/>
+  <path d="M128 176C128 158.327 142.327 144 160 144H352C369.673 144 384 158.327 384 176V336C384 353.673 369.673 368 352 368H160C142.327 368 128 353.673 128 336V176Z" fill="white"/>
+  <rect x="160" y="176" width="192" height="32" rx="8" fill="#6366F1"/>
+  <rect x="160" y="224" width="128" height="16" rx="8" fill="#6366F1"/>
+  <rect x="160" y="256" width="160" height="16" rx="8" fill="#6366F1"/>
+  <rect x="160" y="288" width="144" height="16" rx="8" fill="#6366F1"/>
+  <rect x="160" y="320" width="96" height="16" rx="8" fill="#6366F1"/>
+  <circle cx="352" cy="264" r="24" fill="#6366F1"/>
+  <circle cx="352" cy="264" r="12" fill="white"/>
 </svg>
