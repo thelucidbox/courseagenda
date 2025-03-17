@@ -80,6 +80,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get authenticated user
   apiRouter.get('/auth/user', async (req, res) => {
     try {
+      console.log('Auth session data:', { 
+        isAuthenticated: req.isAuthenticated?.(),
+        session: req.session,
+        user: req.user,
+        passport: req.session?.passport
+      });
+      
+      // First check if the user is authenticated via Replit auth
+      if (req.isAuthenticated && req.isAuthenticated()) {
+        console.log('User authenticated via Replit Auth');
+        return res.status(200).json(req.user);
+      }
+      
+      // Fall back to our custom auth
       const user = await getAuthUser(req);
       
       if (!user) {
