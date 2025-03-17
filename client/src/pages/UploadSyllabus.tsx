@@ -188,7 +188,7 @@ const UploadSyllabus = () => {
       
       <div className="flex flex-col md:flex-row gap-6">
         <div className="md:w-2/3 space-y-6">
-          <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="bg-card rounded-lg shadow-sm p-6">
             <h3 className="text-lg font-semibold mb-4">Upload Your Syllabus</h3>
             
             <Alert className="mb-4">
