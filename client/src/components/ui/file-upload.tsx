@@ -127,7 +127,7 @@ const FileUpload = ({
           </div>
           <p className="mb-2">Drag and drop your syllabus PDF here</p>
           <p className="text-sm text-muted-foreground mb-4">or</p>
-          <Button className="bg-primary">
+          <Button className="bg-primary text-primary-foreground">
             <Upload className="mr-2 h-4 w-4" />
             Browse Files
           </Button>

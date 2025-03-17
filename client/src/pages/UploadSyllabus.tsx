@@ -196,7 +196,7 @@ const UploadSyllabus = () => {
             <Alert className="mb-4">
               <CheckCircle2 className="h-4 w-4 text-green-500" />
               <AlertTitle>Upload your PDF and I'll take care of the rest</AlertTitle>
-              <AlertDescription>
+              <AlertDescription className="text-foreground/80">
                 Your syllabus will be analyzed to extract key course information, 
                 important dates, assignments, and exams automatically.
               </AlertDescription>
@@ -237,8 +237,8 @@ const UploadSyllabus = () => {
                     <Alert variant="destructive" className="mb-4">
                       <AlertCircle className="h-4 w-4" />
                       <AlertTitle>PDF Processing Failed</AlertTitle>
-                      <AlertDescription>
-                        We couldn't automatically process this PDF. Try entering the information manually instead.
+                      <AlertDescription className="text-destructive-foreground">
+                        We couldn't automatically process this PDF. Try another file or try on a desktop device for manual entry.
                       </AlertDescription>
                     </Alert>
                     
@@ -266,7 +266,7 @@ const UploadSyllabus = () => {
                       onClick={handleContinue}
                       disabled={uploadMutation.isPending}
                       size="lg"
-                      className="w-full max-w-md bg-primary shadow-lg text-white font-medium py-6"
+                      className="w-full max-w-md bg-primary shadow-lg text-primary-foreground font-medium py-6"
                     >
                       {uploadMutation.isPending ? (
                         <>
