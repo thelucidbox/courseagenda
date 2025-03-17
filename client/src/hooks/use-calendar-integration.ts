@@ -16,7 +16,7 @@ interface CalendarEvent {
 
 interface IntegrationOptions {
   provider: 'google' | 'outlook' | 'apple' | 'ics';
-  events: CalendarEvent[];
+  events?: CalendarEvent[];
   studyPlanId?: number;
   courseSchedule?: {
     firstDayOfClass: string;
@@ -64,33 +64,100 @@ export function useCalendarIntegration() {
     }
   });
 
+  // Mutation for downloading ICS file
+  const icsDownloadMutation = useMutation({
+    mutationFn: async (options: {
+      studyPlanId: number;
+      courseSchedule?: IntegrationOptions['courseSchedule'];
+    }) => {
+      // Fetch study sessions and other events from the server
+      const response = await apiRequest(`/api/study-plans/${options.studyPlanId}/calendar-events`, {
+        method: 'POST',
+        body: {
+          provider: 'ics',
+          courseSchedule: options.courseSchedule
+        }
+      });
+      
+      return response;
+    }
+  });
+
   // Function to integrate with user's calendar based on provider
   const integrateWithCalendar = async (options: IntegrationOptions) => {
-    const { provider, events, studyPlanId, courseSchedule } = options;
+    const { provider, events = [], studyPlanId, courseSchedule } = options;
     
-    // If downloading ICS file, use the downloadMultiEventICSFile function
+    // If downloading ICS file
     if (provider === 'ics' || provider === 'outlook' || provider === 'apple') {
       try {
-        downloadMultiEventICSFile(events, `study_plan_${studyPlanId || 'events'}`);
-        toast({
-          title: 'Success!',
-          description: 'Your calendar file has been downloaded',
-          variant: 'default',
-        });
-        
-        // Also update the database to mark this as integrated
         if (studyPlanId) {
-          await apiRequest(`/api/study-plans/${studyPlanId}/calendar-integration`, {
-            method: 'POST',
-            body: {
-              provider: 'ics',
-              courseSchedule
+          // First, fetch events from server if we have a study plan ID
+          try {
+            // Call the API to get the study sessions
+            const response = await apiRequest(`/api/study-plans/${studyPlanId}/events`, {
+              method: 'GET'
+            });
+            
+            // Process events from the response
+            const calendarEvents: CalendarEvent[] = response.map((event: any) => ({
+              title: event.title,
+              description: event.description || '',
+              startTime: new Date(event.startTime),
+              endTime: new Date(event.endTime),
+              location: event.location || '',
+              reminderMinutes: event.type === 'exam' ? 60 * 24 * 7 : // 1 week for exams
+                             event.type === 'assignment' ? 60 * 24 : // 1 day for assignments
+                             30 // 30 minutes for study sessions
+            }));
+            
+            // Generate and download the ICS file
+            downloadMultiEventICSFile(calendarEvents, `study_plan_${studyPlanId}`);
+            
+            // Mark as integrated in the database
+            await apiRequest(`/api/study-plans/${studyPlanId}/calendar-integration`, {
+              method: 'POST',
+              body: {
+                provider: 'ics',
+                courseSchedule
+              }
+            });
+            
+            queryClient.invalidateQueries({ queryKey: ['/api/study-plans'] });
+            
+            toast({
+              title: 'Success!',
+              description: 'Your calendar file has been downloaded',
+              variant: 'default',
+            });
+            
+            return true;
+          } catch (error) {
+            console.error('Error fetching study plan events:', error);
+            // If API fails, try to download with provided events only
+            if (events.length > 0) {
+              downloadMultiEventICSFile(events, `study_plan_${studyPlanId}`);
+              toast({
+                title: 'Success!',
+                description: 'Your calendar file has been downloaded with limited events',
+                variant: 'default',
+              });
+              return true;
+            } else {
+              throw new Error('No events to download');
             }
+          }
+        } else if (events.length > 0) {
+          // If no study plan ID but we have events, download those
+          downloadMultiEventICSFile(events, 'study_events');
+          toast({
+            title: 'Success!',
+            description: 'Your calendar file has been downloaded',
+            variant: 'default',
           });
-          queryClient.invalidateQueries({ queryKey: ['/api/study-plans'] });
+          return true;
+        } else {
+          throw new Error('No events to download');
         }
-        
-        return true;
       } catch (error) {
         console.error('ICS file generation error:', error);
         toast({
@@ -102,7 +169,7 @@ export function useCalendarIntegration() {
       }
     }
     
-    // For Google Calendar integration, use the mutation if authenticated
+    // For Google Calendar integration
     if (provider === 'google') {
       if (!hasGoogleAuth) {
         toast({
@@ -114,7 +181,7 @@ export function useCalendarIntegration() {
       }
       
       try {
-        await googleCalendarMutation.mutateAsync({ events, studyPlanId, courseSchedule });
+        await googleCalendarMutation.mutateAsync({ studyPlanId, courseSchedule });
         return true;
       } catch (error) {
         return false;
@@ -127,6 +194,6 @@ export function useCalendarIntegration() {
   return {
     integrateWithCalendar,
     hasGoogleAuth,
-    isIntegrating: googleCalendarMutation.isPending
+    isIntegrating: googleCalendarMutation.isPending || icsDownloadMutation.isPending
   };
 }

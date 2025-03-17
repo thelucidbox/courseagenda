@@ -431,6 +431,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(500).json({ message: 'Failed to fetch study sessions' });
     }
   });
+  
+  // Get all events for a study plan (for calendar integration)
+  apiRouter.get('/study-plans/:id/events', async (req, res) => {
+    try {
+      const studyPlanId = Number(req.params.id);
+      
+      // Get the study plan
+      const studyPlan = await storage.getStudyPlan(studyPlanId);
+      if (!studyPlan) {
+        return res.status(404).json({ message: 'Study plan not found' });
+      }
+      
+      // Get the associated syllabus
+      const syllabus = await storage.getSyllabus(studyPlan.syllabusId);
+      if (!syllabus) {
+        return res.status(404).json({ message: 'Associated syllabus not found' });
+      }
+      
+      // Get study sessions
+      const studySessions = await storage.getStudySessions(studyPlanId);
+      
+      // Get course events from syllabus
+      const courseEvents = await storage.getCourseEvents(syllabus.id);
+      
+      // Convert study sessions to calendar events
+      const calendarEvents = studySessions.map(session => ({
+        id: session.id,
+        title: `Study Session: ${session.title || 'Untitled Session'}`,
+        description: session.description || '',
+        startTime: session.startTime,
+        endTime: session.endTime,
+        location: session.location || '',
+        type: 'study'
+      }));
+      
+      // Add course events
+      courseEvents.forEach(event => {
+        if (event.dueDate) {
+          calendarEvents.push({
+            id: event.id,
+            title: event.title,
+            description: event.description || '',
+            startTime: new Date(event.dueDate),
+            // For assignments and exams, set a default duration of 2 hours
+            endTime: new Date(new Date(event.dueDate).getTime() + 2 * 60 * 60 * 1000),
+            type: event.eventType
+          });
+        }
+      });
+      
+      return res.status(200).json(calendarEvents);
+    } catch (error) {
+      console.error('Error fetching events for calendar:', error);
+      return res.status(500).json({ message: 'Failed to fetch calendar events' });
+    }
+  });
 
   // Update calendar integration status
   apiRouter.post('/study-plans/:id/calendar-integration', async (req, res) => {
