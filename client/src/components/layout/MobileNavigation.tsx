@@ -135,7 +135,7 @@ const MobileNavigation = () => {
                   }}
                 >
                   <LogIn className="mr-2 h-4 w-4" />
-                  Log in with Replit
+                  Log in or Sign up
                 </Button>
               )}
             </div>
