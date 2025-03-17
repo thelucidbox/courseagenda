@@ -35,7 +35,7 @@ const Landing = () => {
                   </Button>
                 ) : (
                   <Button size="lg" onClick={login}>
-                    Log in with Replit <ArrowRight className="ml-2 h-4 w-4" />
+                    Log in or Sign up <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 )}
                 <Button size="lg" variant="outline" asChild>
@@ -138,7 +138,7 @@ const Landing = () => {
                   <Link href="/upload">Get Started</Link>
                 </Button>
               ) : (
-                <Button onClick={login}>Log in with Replit</Button>
+                <Button onClick={login}>Log in or Sign up</Button>
               )}
             </div>
             
@@ -215,7 +215,7 @@ const Landing = () => {
                 </Button>
               ) : (
                 <Button size="lg" onClick={login}>
-                  Log in with Replit <ArrowRight className="ml-2 h-4 w-4" />
+                  Log in or Sign up <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               )}
               <Button size="lg" variant="outline">
