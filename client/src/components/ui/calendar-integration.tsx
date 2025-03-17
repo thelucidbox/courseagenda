@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Button } from "./button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "./form";
@@ -12,7 +12,8 @@ import { Input } from "./input";
 import { Download, CalendarDays, FileText } from "lucide-react";
 import { Separator } from "./separator";
 import { format } from "date-fns";
-import { useCalendarIntegration } from "@/hooks/use-calendar-integration";
+import { downloadMultiEventICSFile } from "@/lib/calendar";
+import { getQueryFn } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 const courseScheduleFormSchema = z.object({
@@ -54,11 +55,27 @@ const WEEKDAYS: { value: WeekdayType; label: string }[] = [
   { value: 'sunday', label: 'Sunday' },
 ];
 
+interface StudyPlanEvent {
+  id: number;
+  title: string;
+  description?: string;
+  startTime: string;
+  endTime: string;
+  location?: string;
+  type: string;
+}
+
 const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarIntegrationProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [downloadType, setDownloadType] = useState<'all' | 'course-only'>('all');
-  const { integrateWithCalendar, isIntegrating } = useCalendarIntegration();
+  const [includeStudySessions, setIncludeStudySessions] = useState(true);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  // Fetch events for this study plan
+  const { data: events } = useQuery({
+    queryKey: [`/api/study-plans/${studyPlanId}/events`],
+    queryFn: getQueryFn<StudyPlanEvent[]>({ on401: "returnNull" }),
+  });
 
   const form = useForm<CourseScheduleFormValues>({
     resolver: zodResolver(courseScheduleFormSchema),
@@ -71,30 +88,41 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
     },
   });
 
-  const calendarMutation = useMutation({
-    mutationFn: async (options: {
-      includeStudySessions: boolean;
-      courseSchedule?: CourseScheduleFormValues;
-    }) => {
-      const { includeStudySessions, courseSchedule } = options;
-      
-      return await integrateWithCalendar({
-        provider: 'ics',
-        studyPlanId,
-        includeStudySessions,
-        courseSchedule: courseSchedule
-          ? {
-              firstDayOfClass: format(courseSchedule.firstDayOfClass, 'yyyy-MM-dd'),
-              lastDayOfClass: format(courseSchedule.lastDayOfClass, 'yyyy-MM-dd'),
-              meetingDays: courseSchedule.meetingDays,
-              meetingTimeStart: courseSchedule.meetingTimeStart,
-              meetingTimeEnd: courseSchedule.meetingTimeEnd,
-            }
-          : undefined,
+  const handleDownload = async () => {
+    if (!events || events.length === 0) {
+      toast({
+        title: 'No events available',
+        description: 'There are no events to download for this study plan.',
+        variant: 'destructive',
       });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/study-plans'] });
+      return;
+    }
+
+    setIsDownloading(true);
+    
+    try {
+      // Filter events based on selection
+      const filteredEvents = events.filter(event => {
+        if (event.type === 'study') {
+          return includeStudySessions;
+        }
+        return true; // Always include course events
+      });
+      
+      // Convert events to calendar format
+      const calendarEvents = filteredEvents.map(event => ({
+        title: event.title,
+        description: event.description || '',
+        startTime: new Date(event.startTime),
+        endTime: new Date(event.endTime),
+        location: event.location || '',
+        reminderMinutes: event.type === 'exam' ? 60 * 24 * 7 : // 1 week for exams
+                       event.type === 'assignment' ? 60 * 24 : // 1 day for assignments
+                       30 // 30 minutes for study sessions
+      }));
+      
+      // Generate and download the ICS file
+      downloadMultiEventICSFile(calendarEvents, `study_plan_${studyPlanId}`);
       
       toast({
         title: 'Success!',
@@ -105,28 +133,22 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
       if (onIntegrationComplete) {
         onIntegrationComplete();
       }
-    },
-    onError: (error) => {
+    } catch (error) {
       console.error('Calendar download error:', error);
       toast({
         title: 'Download failed',
         description: 'Could not generate calendar file. Please try again.',
         variant: 'destructive',
       });
-    },
-  });
-
-  const handleDownloadWithSchedule = (data: CourseScheduleFormValues) => {
-    calendarMutation.mutate({
-      includeStudySessions: downloadType === 'all',
-      courseSchedule: data
-    });
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
-  const handleDownload = () => {
-    calendarMutation.mutate({
-      includeStudySessions: downloadType === 'all'
-    });
+  const handleDownloadWithSchedule = async (data: CourseScheduleFormValues) => {
+    // In a real implementation, this would combine regular class schedule with events
+    // For now, just download the events
+    handleDownload();
   };
 
   return (
@@ -149,9 +171,9 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
               <div className="flex flex-col sm:flex-row gap-4 mb-6">
                 <Button
                   type="button"
-                  variant={downloadType === 'all' ? 'default' : 'outline'}
+                  variant={includeStudySessions ? 'default' : 'outline'}
                   className="flex items-center justify-center"
-                  onClick={() => setDownloadType('all')}
+                  onClick={() => setIncludeStudySessions(true)}
                   size="lg"
                 >
                   <CalendarDays className="mr-2 h-5 w-5" />
@@ -163,9 +185,9 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
                 
                 <Button
                   type="button"
-                  variant={downloadType === 'course-only' ? 'default' : 'outline'}
+                  variant={!includeStudySessions ? 'default' : 'outline'}
                   className="flex items-center justify-center"
-                  onClick={() => setDownloadType('course-only')}
+                  onClick={() => setIncludeStudySessions(false)}
                   size="lg"
                 >
                   <FileText className="mr-2 h-5 w-5" />
@@ -178,180 +200,25 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
               
               <Separator className="my-4" />
               
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                <div>
-                  <h4 className="text-sm font-medium">Include Regular Class Schedule?</h4>
-                  <p className="text-xs text-muted-foreground">
-                    Add your regular class meeting times to the calendar
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => form.handleSubmit(handleDownloadWithSchedule)()}
-                  >
-                    Yes, Include Schedule
-                  </Button>
-                  <Button 
-                    onClick={handleDownload} 
-                    disabled={isIntegrating}
-                  >
-                    <Download className="mr-2 h-4 w-4" />
-                    {isIntegrating ? 'Downloading...' : 'Download Now'}
-                  </Button>
-                </div>
-              </div>
+              <Button 
+                onClick={handleDownload} 
+                disabled={isDownloading}
+                className="w-full"
+                size="lg"
+              >
+                <Download className="mr-2 h-5 w-5" />
+                {isDownloading ? 'Downloading...' : 'Download Calendar File'}
+              </Button>
+              
+              <p className="text-xs text-muted-foreground text-center mt-2">
+                This file can be imported into Google Calendar, Apple Calendar, Microsoft Outlook, and other calendar applications.
+              </p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Class Schedule Settings</CardTitle>
-          <CardDescription>
-            Define your regular class meeting times to add to the calendar
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleDownloadWithSchedule)} className="space-y-6">
-              <div className="grid gap-6 sm:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="firstDayOfClass"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>First Day of Class</FormLabel>
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        initialFocus
-                      />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="lastDayOfClass"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Last Day of Class</FormLabel>
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        initialFocus
-                      />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <FormField
-                control={form.control}
-                name="meetingDays"
-                render={() => (
-                  <FormItem>
-                    <div className="mb-4">
-                      <FormLabel>Meeting Days</FormLabel>
-                      <FormDescription>
-                        Select the days when your class meets
-                      </FormDescription>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                      {WEEKDAYS.map((day) => (
-                        <FormField
-                          key={day.value}
-                          control={form.control}
-                          name="meetingDays"
-                          render={({ field }) => {
-                            return (
-                              <FormItem
-                                key={day.value}
-                                className="flex flex-row items-start space-x-3 space-y-0"
-                              >
-                                <FormControl>
-                                  <Checkbox
-                                    checked={field.value?.includes(day.value)}
-                                    onCheckedChange={(checked) => {
-                                      return checked
-                                        ? field.onChange([...field.value, day.value])
-                                        : field.onChange(
-                                            field.value?.filter(
-                                              (value) => value !== day.value
-                                            )
-                                          )
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormLabel className="font-normal">
-                                  {day.label}
-                                </FormLabel>
-                              </FormItem>
-                            )
-                          }}
-                        />
-                      ))}
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid gap-6 sm:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="meetingTimeStart"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Start Time</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="09:00" 
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Use 24-hour format (e.g. 13:30 for 1:30 PM)
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="meetingTimeEnd"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>End Time</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="10:30" 
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Use 24-hour format (e.g. 14:45 for 2:45 PM)
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <CardFooter className="px-0 pb-0">
-                <Button type="submit" disabled={isIntegrating}>
-                  {isIntegrating ? 'Processing...' : 'Download with Class Schedule'}
-                </Button>
-              </CardFooter>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+      {/* You can add other cards for class schedule settings here */}
     </div>
   );
 };
