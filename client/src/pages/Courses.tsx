@@ -37,10 +37,10 @@ const Courses = () => {
   });
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">My Courses</h1>
-        <Button asChild>
+    <div className="container mx-auto px-4 py-6">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">My Courses</h1>
+        <Button asChild className="bg-primary hover:bg-primary/90">
           <Link href="/upload">
             <PlusCircle className="mr-2 h-4 w-4" />
             Upload New Syllabus
@@ -76,16 +76,18 @@ const Courses = () => {
           ))}
         </div>
       ) : (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <Book className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">No Courses Yet</h3>
-            <p className="text-gray-500 mb-4">
-              You haven't uploaded any syllabi yet. Upload your first syllabus to get started.
+        <Card className="shadow-md">
+          <CardContent className="p-10 text-center">
+            <div className="bg-primary/10 p-4 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+              <Book className="h-10 w-10 text-primary" />
+            </div>
+            <h3 className="text-xl font-medium mb-3">No Courses Yet</h3>
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+              You haven't uploaded any syllabi yet. Upload your first syllabus to get started with your personalized study plan.
             </p>
-            <Button asChild>
+            <Button asChild size="lg" className="bg-primary hover:bg-primary/90">
               <Link href="/upload">
-                Get Started
+                <PlusCircle className="mr-2 h-4 w-4" /> Upload Your First Syllabus
               </Link>
             </Button>
           </CardContent>
@@ -93,27 +95,29 @@ const Courses = () => {
       )}
 
       {syllabi && syllabi.length > 0 && (
-        <div className="mt-10">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Uploads</h2>
-          <div className="bg-white rounded-lg shadow-sm p-4">
-            <div className="space-y-2">
+        <div className="mt-12">
+          <h2 className="text-xl font-bold mb-4">Recent Uploads</h2>
+          <Card className="overflow-hidden">
+            <div className="space-y-1">
               {syllabi.slice(0, 5).map(syllabus => (
                 <div 
                   key={syllabus.id} 
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-md border border-gray-100"
+                  className="flex items-center justify-between p-4 hover:bg-accent/20 transition-colors"
                 >
                   <div className="flex items-center space-x-3">
-                    <FileText className="text-red-500" />
+                    <div className="bg-primary/10 p-2 rounded-full">
+                      <FileText className="text-primary h-5 w-5" />
+                    </div>
                     <div>
                       <p className="text-sm font-medium">{syllabus.filename}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         Uploaded {formatDistanceToNow(new Date(syllabus.uploadedAt), { addSuffix: true })}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
                     {syllabus.status === 'uploaded' ? (
-                      <Button size="sm" variant="outline" asChild>
+                      <Button size="sm" variant="outline" asChild className="border-primary/20 hover:border-primary/50">
                         <Link href={`/extract/${syllabus.id}`}>
                           <Clock className="mr-1 h-4 w-4" /> Process
                         </Link>
@@ -129,7 +133,7 @@ const Courses = () => {
                 </div>
               ))}
             </div>
-          </div>
+          </Card>
         </div>
       )}
     </div>
@@ -153,32 +157,32 @@ const CourseCard = ({
   const borderColor = borderColors[colorIndex];
 
   return (
-    <div className={`bg-white rounded-lg shadow-sm p-4 border-l-4 ${borderColor} hover:shadow-md transition`}>
-      <div className="flex justify-between items-start mb-2">
-        <h3 className="font-semibold">
+    <div className={`bg-card rounded-lg shadow-sm p-5 border-l-4 ${borderColor} hover:shadow-md transition`}>
+      <div className="flex justify-between items-start mb-3">
+        <h3 className="font-semibold text-lg">
           {syllabus.courseName || syllabus.courseCode || 'Untitled Course'}
         </h3>
-        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Active</span>
+        <span className="text-xs bg-green-500/20 text-green-600 dark:bg-green-950 dark:text-green-400 px-2 py-1 rounded-full font-medium">Active</span>
       </div>
-      <p className="text-sm text-gray-500 mb-2">
+      <p className="text-sm text-muted-foreground mb-2">
         {syllabus.courseCode} {syllabus.instructor ? `- ${syllabus.instructor}` : ''}
       </p>
       {syllabus.term && (
-        <div className="flex items-center space-x-1 text-xs text-gray-500 mb-3">
+        <div className="flex items-center space-x-1 text-xs text-muted-foreground mb-4">
           <Calendar className="h-3 w-3" />
           <span>{syllabus.term}</span>
         </div>
       )}
       
-      <div className="mb-4">
-        <div className="flex justify-between text-xs mb-1">
+      <div className="mb-5">
+        <div className="flex justify-between text-xs mb-2">
           <span className="font-medium">Course Progress</span>
           <span>{progress}%</span>
         </div>
-        <Progress value={progress} className="h-1.5" />
+        <Progress value={progress} className="h-2" />
       </div>
       
-      <div className="border-t border-gray-100 pt-3">
+      <div className="border-t border-border pt-4">
         {studyPlans.length > 0 ? (
           <>
             <h4 className="text-xs font-medium mb-2">Study Plan Status</h4>
