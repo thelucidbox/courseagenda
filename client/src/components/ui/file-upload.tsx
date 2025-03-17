@@ -113,7 +113,9 @@ const FileUpload = ({
         <div
           className={cn(
             "border-2 border-dashed rounded-lg p-8 text-center transition cursor-pointer",
-            isDragging ? "border-primary-400 bg-primary-50" : "border-gray-300 bg-gray-50 hover:border-primary-400"
+            isDragging 
+              ? "border-primary bg-primary/5" 
+              : "border-muted hover:border-primary"
           )}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -121,10 +123,10 @@ const FileUpload = ({
           onClick={handleBrowseClick}
         >
           <div className="mb-4">
-            <FileText className="h-12 w-12 mx-auto text-gray-400" />
+            <FileText className="h-12 w-12 mx-auto text-muted-foreground" />
           </div>
-          <p className="text-gray-700 mb-2">Drag and drop your syllabus PDF here</p>
-          <p className="text-sm text-gray-500 mb-4">or</p>
+          <p className="mb-2">Drag and drop your syllabus PDF here</p>
+          <p className="text-sm text-muted-foreground mb-4">or</p>
           <Button className="bg-primary">
             <Upload className="mr-2 h-4 w-4" />
             Browse Files
@@ -136,7 +138,7 @@ const FileUpload = ({
             ref={fileInputRef}
             onChange={handleFileChange}
           />
-          <p className="text-xs text-gray-500 mt-4">Supported format: PDF</p>
+          <p className="text-xs text-muted-foreground mt-4">Supported format: PDF</p>
           
           {errorMessage && (
             <div className="mt-4 flex items-center justify-center text-destructive text-sm">

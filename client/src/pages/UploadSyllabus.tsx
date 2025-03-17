@@ -222,7 +222,7 @@ const UploadSyllabus = () => {
                 />
                 
                 {pdfProcessingStatus === 'processing' && (
-                  <div className="absolute top-4 right-4 bg-white/90 p-3 rounded-md shadow-md">
+                  <div className="absolute top-4 right-4 bg-card/90 p-3 rounded-md shadow-md">
                     <div className="flex items-center">
                       <div className="h-4 w-4 mr-2 rounded-full border-2 border-primary border-t-transparent animate-spin"></div>
                       <span className="text-xs font-medium">Processing PDF...</span>
@@ -240,16 +240,17 @@ const UploadSyllabus = () => {
                       </AlertDescription>
                     </Alert>
                     
-                    <div className="flex justify-center">
+                    <div className="flex justify-center gap-2 flex-wrap">
                       <Button 
                         onClick={handleSwitchToManualInput}
-                        className="mr-2"
+                        className="hidden md:inline-flex" // Hide on mobile, show on desktop
                       >
                         Enter Information Manually
                       </Button>
                       <Button 
                         onClick={() => setSelectedFile(null)}
-                        variant="outline"
+                        variant={isMobile ? "default" : "outline"}
+                        className="w-full md:w-auto" // Full width on mobile
                       >
                         Try Another File
                       </Button>
@@ -287,10 +288,13 @@ const UploadSyllabus = () => {
                 <Button 
                   onClick={handleSwitchToManualInput}
                   variant="ghost"
-                  size="sm" 
+                  size="sm"
+                  className="hidden md:flex" // Hide on mobile, show on larger screens
                 >
                   Enter information manually instead
                 </Button>
+                
+                <div className="md:hidden w-4"></div> {/* Spacer on mobile */}
                 
                 <Button 
                   onClick={() => setSelectedFile(null)} 
@@ -302,7 +306,7 @@ const UploadSyllabus = () => {
             )}
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="bg-card rounded-lg shadow-sm p-6">
             <h3 className="text-lg font-semibold mb-4">Recent Uploads</h3>
             
             <div className="space-y-2" id="recent-uploads">
@@ -312,54 +316,54 @@ const UploadSyllabus = () => {
         </div>
         
         <div className="md:w-1/3">
-          <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="bg-card rounded-lg shadow-sm p-6">
             <h3 className="text-lg font-semibold mb-4">How It Works</h3>
             
             <div className="space-y-4">
               <div className="flex space-x-3">
-                <div className="w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center flex-shrink-0">
+                <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0 text-xs">
                   1
                 </div>
                 <div>
                   <h4 className="font-medium text-sm">Upload your syllabus</h4>
-                  <p className="text-sm text-gray-500">Upload your course syllabus in PDF format.</p>
+                  <p className="text-sm text-muted-foreground">Upload your course syllabus in PDF format.</p>
                 </div>
               </div>
               
               <div className="flex space-x-3">
-                <div className="w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center flex-shrink-0">
+                <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0 text-xs">
                   2
                 </div>
                 <div>
                   <h4 className="font-medium text-sm">Automatic analysis and processing</h4>
-                  <p className="text-sm text-gray-500">Your PDF is automatically analyzed to extract course information, deadlines, and assignments.</p>
+                  <p className="text-sm text-muted-foreground">Your PDF is automatically analyzed to extract course information, deadlines, and assignments.</p>
                 </div>
               </div>
               
               <div className="flex space-x-3">
-                <div className="w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center flex-shrink-0">
+                <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0 text-xs">
                   3
                 </div>
                 <div>
                   <h4 className="font-medium text-sm">Generate your study plan</h4>
-                  <p className="text-sm text-gray-500">We'll create a personalized study plan with recommended study sessions based on your course schedule.</p>
+                  <p className="text-sm text-muted-foreground">We'll create a personalized study plan with recommended study sessions based on your course schedule.</p>
                 </div>
               </div>
               
               <div className="flex space-x-3">
-                <div className="w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center flex-shrink-0">
+                <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0 text-xs">
                   4
                 </div>
                 <div>
                   <h4 className="font-medium text-sm">Sync with your calendar</h4>
-                  <p className="text-sm text-gray-500">Add your study plan directly to Google Calendar, Apple Calendar, or other supported calendar services.</p>
+                  <p className="text-sm text-muted-foreground">Add your study plan directly to Google Calendar, Apple Calendar, or other supported calendar services.</p>
                 </div>
               </div>
             </div>
             
-            <div className="mt-6 p-4 bg-primary-50 rounded-md border border-primary-100">
-              <h4 className="font-medium text-sm mb-2 text-primary-800">Tips for Best Results</h4>
-              <ul className="text-sm text-gray-700 space-y-1">
+            <div className="mt-6 p-4 bg-muted/50 rounded-md border border-muted">
+              <h4 className="font-medium text-sm mb-2">Tips for Best Results</h4>
+              <ul className="text-sm space-y-1">
                 <li className="flex items-start space-x-2">
                   <CheckIcon className="text-primary mt-0.5 h-4 w-4" />
                   <span>Ensure your PDF includes clearly stated dates and deadlines</span>
