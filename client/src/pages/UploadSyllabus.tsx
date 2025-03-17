@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { useMobile } from '@/hooks/use-mobile';
 import FileUpload from '@/components/ui/file-upload';
 import ProgressSteps from '@/components/ui/progress-steps';
 import PDFViewer from '@/components/ui/pdf-viewer';
@@ -30,6 +31,7 @@ const UploadSyllabus = () => {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const isMobile = useMobile();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [extractedText, setExtractedText] = useState<string | null>(null);
   const [pdfProcessingStatus, setPdfProcessingStatus] = useState<'idle' | 'processing' | 'failed' | 'success'>('idle');
