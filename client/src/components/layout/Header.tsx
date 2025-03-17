@@ -89,9 +89,9 @@ const Header = () => {
 
           {isAuthenticated ? (
             <>
-              <Button variant="outline" size="sm" className="mr-2 hidden md:flex">
+              <Button variant="outline" size="sm" className="mr-2 hidden md:flex" disabled>
                 <CreditCard className="mr-2 h-4 w-4" />
-                <span>Subscription</span>
+                <span>Subscription (Coming Soon)</span>
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -119,11 +119,9 @@ const Header = () => {
                       <span>Profile</span>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/subscription">
-                      <CreditCard className="mr-2 h-4 w-4" />
-                      <span>Subscription</span>
-                    </Link>
+                  <DropdownMenuItem disabled>
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    <span>Subscription (Coming Soon)</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={toggleTheme}>

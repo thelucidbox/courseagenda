@@ -199,13 +199,9 @@ export default function Profile() {
                   </ul>
                   <Button 
                     className="w-full" 
-                    disabled={user?.subscriptionStatus === 'premium' || user?.subscriptionStatus === 'lifetime'}
+                    disabled={true}
                   >
-                    {user?.subscriptionStatus === 'premium' 
-                      ? 'Current Plan' 
-                      : user?.subscriptionStatus === 'lifetime' 
-                      ? 'Already on Lifetime' 
-                      : 'Upgrade to Premium'}
+                    Coming Soon
                   </Button>
                 </div>
                 
@@ -246,9 +242,9 @@ export default function Profile() {
                   <Button 
                     variant="outline"
                     className="w-full border-primary border-2 hover:bg-primary hover:text-primary-foreground" 
-                    disabled={user?.subscriptionStatus === 'lifetime'}
+                    disabled={true}
                   >
-                    {user?.subscriptionStatus === 'lifetime' ? 'Current Plan' : 'Get Lifetime Access'}
+                    Coming Soon
                   </Button>
                 </div>
               </div>

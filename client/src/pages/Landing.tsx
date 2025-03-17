@@ -164,8 +164,8 @@ const Landing = () => {
                 <PricingItem text="Export options" />
               </ul>
               
-              <Button variant="default">
-                Subscribe
+              <Button variant="default" disabled>
+                Coming Soon
               </Button>
             </div>
             
@@ -187,8 +187,8 @@ const Landing = () => {
                 <PricingItem text="Never pay again" />
               </ul>
               
-              <Button variant="outline">
-                Buy Lifetime
+              <Button variant="outline" disabled>
+                Coming Soon
               </Button>
             </div>
           </div>

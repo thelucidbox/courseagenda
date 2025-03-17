@@ -7,7 +7,7 @@ const Footer = () => {
         <div className="flex items-center gap-2">
           <CalendarRange className="h-5 w-5" />
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} StudyPlanner. All rights reserved.
+            © {new Date().getFullYear()} CourseAgenda. All rights reserved.
           </p>
         </div>
         <div className="flex items-center gap-4 text-sm text-muted-foreground">

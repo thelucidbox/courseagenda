@@ -49,7 +49,7 @@ const MobileNavigation = () => {
       <div className="flex items-center justify-between px-4 h-16 border-b">
         <Link href="/" className="flex items-center space-x-2">
           <CalendarRange className="h-6 w-6" />
-          <span className="font-bold text-lg">StudyPlanner</span>
+          <span className="font-bold text-lg">CourseAgenda</span>
         </Link>
         
         <Sheet open={open} onOpenChange={setOpen}>
@@ -63,7 +63,7 @@ const MobileNavigation = () => {
             <div className="py-6">
               <div className="flex items-center mb-6">
                 <CalendarRange className="h-6 w-6 mr-2" />
-                <span className="font-bold text-lg">StudyPlanner</span>
+                <span className="font-bold text-lg">CourseAgenda</span>
               </div>
               
               {isAuthenticated && (
