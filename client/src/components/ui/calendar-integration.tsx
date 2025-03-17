@@ -3,15 +3,13 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 import { Button } from "./button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "./form";
 import { Calendar } from "./calendar";
 import { Checkbox } from "./checkbox";
 import { Input } from "./input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
-import { CalendarRange, Download } from "lucide-react";
+import { Download, CalendarDays, FileText } from "lucide-react";
 import { Separator } from "./separator";
 import { format } from "date-fns";
 import { useCalendarIntegration } from "@/hooks/use-calendar-integration";
@@ -59,8 +57,8 @@ const WEEKDAYS: { value: WeekdayType; label: string }[] = [
 const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarIntegrationProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [integrationMethod, setIntegrationMethod] = useState<'ics' | 'google'>('ics');
-  const { integrateWithCalendar, hasGoogleAuth, isIntegrating } = useCalendarIntegration();
+  const [downloadType, setDownloadType] = useState<'all' | 'course-only'>('all');
+  const { integrateWithCalendar, isIntegrating } = useCalendarIntegration();
 
   const form = useForm<CourseScheduleFormValues>({
     resolver: zodResolver(courseScheduleFormSchema),
@@ -74,18 +72,23 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
   });
 
   const calendarMutation = useMutation({
-    mutationFn: async (scheduleData?: CourseScheduleFormValues) => {
+    mutationFn: async (options: {
+      includeStudySessions: boolean;
+      courseSchedule?: CourseScheduleFormValues;
+    }) => {
+      const { includeStudySessions, courseSchedule } = options;
+      
       return await integrateWithCalendar({
-        provider: integrationMethod,
-        events: [], // Events will be fetched on the server from the study plan ID
+        provider: 'ics',
         studyPlanId,
-        courseSchedule: scheduleData
+        includeStudySessions,
+        courseSchedule: courseSchedule
           ? {
-              firstDayOfClass: format(scheduleData.firstDayOfClass, 'yyyy-MM-dd'),
-              lastDayOfClass: format(scheduleData.lastDayOfClass, 'yyyy-MM-dd'),
-              meetingDays: scheduleData.meetingDays,
-              meetingTimeStart: scheduleData.meetingTimeStart,
-              meetingTimeEnd: scheduleData.meetingTimeEnd,
+              firstDayOfClass: format(courseSchedule.firstDayOfClass, 'yyyy-MM-dd'),
+              lastDayOfClass: format(courseSchedule.lastDayOfClass, 'yyyy-MM-dd'),
+              meetingDays: courseSchedule.meetingDays,
+              meetingTimeStart: courseSchedule.meetingTimeStart,
+              meetingTimeEnd: courseSchedule.meetingTimeEnd,
             }
           : undefined,
       });
@@ -95,7 +98,7 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
       
       toast({
         title: 'Success!',
-        description: `Your study plan events have been ${integrationMethod === 'google' ? 'added to Google Calendar' : 'downloaded as an ICS file'}.`,
+        description: 'Your calendar file has been downloaded.',
         variant: 'default',
       });
       
@@ -104,130 +107,115 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
       }
     },
     onError: (error) => {
-      console.error('Calendar integration error:', error);
+      console.error('Calendar download error:', error);
       toast({
-        title: 'Integration failed',
-        description: 'Could not integrate with calendar. Please try again.',
+        title: 'Download failed',
+        description: 'Could not generate calendar file. Please try again.',
         variant: 'destructive',
       });
     },
   });
 
-  const onSubmit = (data: CourseScheduleFormValues) => {
-    calendarMutation.mutate(data);
+  const handleDownloadWithSchedule = (data: CourseScheduleFormValues) => {
+    calendarMutation.mutate({
+      includeStudySessions: downloadType === 'all',
+      courseSchedule: data
+    });
   };
 
-  const handleSimpleDownload = () => {
-    calendarMutation.mutate();
+  const handleDownload = () => {
+    calendarMutation.mutate({
+      includeStudySessions: downloadType === 'all'
+    });
   };
 
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Calendar Integration</CardTitle>
+          <CardTitle>Calendar Download</CardTitle>
           <CardDescription>
-            Add your study sessions to your calendar to stay organized
+            Download your course events and study sessions to your calendar
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div className="flex flex-col space-y-1.5">
-              <h3 className="font-medium">Select Integration Method</h3>
-              <div className="flex space-x-2">
+          <div className="space-y-6">
+            <div>
+              <h3 className="font-medium mb-3">Download Options</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Download an ICS file compatible with Apple Calendar, Microsoft Outlook, Google Calendar, and most other calendar applications.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-4 mb-6">
                 <Button
                   type="button"
-                  variant={integrationMethod === 'ics' ? 'default' : 'outline'}
-                  className="flex items-center"
-                  onClick={() => setIntegrationMethod('ics')}
+                  variant={downloadType === 'all' ? 'default' : 'outline'}
+                  className="flex items-center justify-center"
+                  onClick={() => setDownloadType('all')}
+                  size="lg"
                 >
-                  <Download className="mr-2 h-4 w-4" />
-                  Download Calendar File
+                  <CalendarDays className="mr-2 h-5 w-5" />
+                  <div className="text-left">
+                    <div className="font-medium">All Events</div>
+                    <div className="text-xs opacity-90">Course events + study sessions</div>
+                  </div>
                 </Button>
+                
                 <Button
                   type="button"
-                  variant={integrationMethod === 'google' ? 'default' : 'outline'}
-                  className="flex items-center"
-                  onClick={() => setIntegrationMethod('google')}
-                  disabled={!hasGoogleAuth}
+                  variant={downloadType === 'course-only' ? 'default' : 'outline'}
+                  className="flex items-center justify-center"
+                  onClick={() => setDownloadType('course-only')}
+                  size="lg"
                 >
-                  <CalendarRange className="mr-2 h-4 w-4" />
-                  Google Calendar
+                  <FileText className="mr-2 h-5 w-5" />
+                  <div className="text-left">
+                    <div className="font-medium">Course Events Only</div>
+                    <div className="text-xs opacity-90">Assignments, exams, etc.</div>
+                  </div>
                 </Button>
               </div>
-              {!hasGoogleAuth && integrationMethod === 'google' && (
-                <p className="text-sm text-muted-foreground mt-1">
-                  You need to sign in with Google to use Google Calendar integration. Please go to your profile to connect your Google account.
-                </p>
-              )}
-            </div>
-
-            <Separator />
-
-            {integrationMethod === 'ics' ? (
-              <div className="space-y-4">
+              
+              <Separator className="my-4" />
+              
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <div>
-                  <h3 className="font-medium mb-2">Download Options</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Download an ICS file containing your study sessions. This file is compatible with 
-                    Apple Calendar, Microsoft Outlook, Google Calendar, and most other calendar applications.
+                  <h4 className="text-sm font-medium">Include Regular Class Schedule?</h4>
+                  <p className="text-xs text-muted-foreground">
+                    Add your regular class meeting times to the calendar
                   </p>
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h4 className="text-sm font-medium">Include Class Schedule</h4>
-                      <p className="text-xs text-muted-foreground">
-                        Set up your regular class meeting times
-                      </p>
-                    </div>
-                    <Button 
-                      variant="outline" 
-                      onClick={() => form.handleSubmit(onSubmit)()}
-                    >
-                      Include Class Schedule
-                    </Button>
-                  </div>
-                  <div className="mt-4">
-                    <Button 
-                      disabled={isIntegrating}
-                      onClick={handleSimpleDownload} 
-                      className="w-full sm:w-auto"
-                    >
-                      <Download className="mr-2 h-4 w-4" />
-                      {isIntegrating ? 'Downloading...' : 'Download Study Sessions Only'}
-                    </Button>
-                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => form.handleSubmit(handleDownloadWithSchedule)()}
+                  >
+                    Yes, Include Schedule
+                  </Button>
+                  <Button 
+                    onClick={handleDownload} 
+                    disabled={isIntegrating}
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    {isIntegrating ? 'Downloading...' : 'Download Now'}
+                  </Button>
                 </div>
               </div>
-            ) : (
-              <div>
-                <h3 className="font-medium mb-2">Google Calendar Integration</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Sync your study sessions with Google Calendar to get notifications and manage your schedule.
-                </p>
-                <Button 
-                  disabled={isIntegrating || !hasGoogleAuth}
-                  onClick={handleSimpleDownload} 
-                  className="w-full sm:w-auto"
-                >
-                  <CalendarRange className="mr-2 h-4 w-4" />
-                  {isIntegrating ? 'Adding to Calendar...' : 'Add Study Sessions to Google Calendar'}
-                </Button>
-              </div>
-            )}
+            </div>
           </div>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Class Schedule</CardTitle>
+          <CardTitle>Class Schedule Settings</CardTitle>
           <CardDescription>
-            Set up your regular class meeting times
+            Define your regular class meeting times to add to the calendar
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(handleDownloadWithSchedule)} className="space-y-6">
               <div className="grid gap-6 sm:grid-cols-2">
                 <FormField
                   control={form.control}
@@ -357,7 +345,7 @@ const CalendarIntegration = ({ studyPlanId, onIntegrationComplete }: CalendarInt
 
               <CardFooter className="px-0 pb-0">
                 <Button type="submit" disabled={isIntegrating}>
-                  {isIntegrating ? 'Processing...' : 'Add to Calendar with Class Schedule'}
+                  {isIntegrating ? 'Processing...' : 'Download with Class Schedule'}
                 </Button>
               </CardFooter>
             </form>

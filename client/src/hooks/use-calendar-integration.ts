@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, getQueryFn } from '@/lib/queryClient';
 import { useAuth } from './use-auth';
 import { downloadMultiEventICSFile } from '@/lib/calendar';
 import { useToast } from './use-toast';
@@ -18,6 +18,7 @@ interface IntegrationOptions {
   provider: 'google' | 'outlook' | 'apple' | 'ics';
   events?: CalendarEvent[];
   studyPlanId?: number;
+  includeStudySessions?: boolean;
   courseSchedule?: {
     firstDayOfClass: string;
     lastDayOfClass: string;
@@ -25,6 +26,16 @@ interface IntegrationOptions {
     meetingTimeStart: string;
     meetingTimeEnd: string;
   };
+}
+
+interface StudyPlanEvent {
+  id: number;
+  title: string;
+  description?: string;
+  startTime: string;
+  endTime: string;
+  location?: string;
+  type: string;
 }
 
 export function useCalendarIntegration() {
@@ -35,71 +46,42 @@ export function useCalendarIntegration() {
   // Check if user has Google OAuth connected (has googleId)
   const hasGoogleAuth = isAuthenticated && user?.googleId;
 
-  // Mutation for integrating with Google Calendar
-  const googleCalendarMutation = useMutation({
-    mutationFn: async (options: Omit<IntegrationOptions, 'provider'>) => {
-      return apiRequest(`/api/study-plans/${options.studyPlanId}/calendar-integration`, {
-        method: 'POST',
-        body: {
-          provider: 'google',
-          courseSchedule: options.courseSchedule
-        }
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/study-plans'] });
-      toast({
-        title: 'Success!',
-        description: 'Your study sessions have been added to Google Calendar',
-        variant: 'default',
-      });
-    },
-    onError: (error) => {
-      console.error('Google Calendar integration error:', error);
-      toast({
-        title: 'Integration failed',
-        description: 'Could not add events to Google Calendar. Please try again.',
-        variant: 'destructive',
-      });
-    }
-  });
-
-  // Mutation for downloading ICS file
-  const icsDownloadMutation = useMutation({
-    mutationFn: async (options: {
-      studyPlanId: number;
-      courseSchedule?: IntegrationOptions['courseSchedule'];
-    }) => {
-      // Fetch study sessions and other events from the server
-      const response = await apiRequest(`/api/study-plans/${options.studyPlanId}/calendar-events`, {
-        method: 'POST',
-        body: {
-          provider: 'ics',
-          courseSchedule: options.courseSchedule
-        }
-      });
-      
-      return response;
-    }
-  });
-
   // Function to integrate with user's calendar based on provider
   const integrateWithCalendar = async (options: IntegrationOptions) => {
-    const { provider, events = [], studyPlanId, courseSchedule } = options;
+    const { provider, events = [], studyPlanId, courseSchedule, includeStudySessions = true } = options;
     
-    // If downloading ICS file
+    // Remove the Google Calendar option - we'll only support ICS downloads
     if (provider === 'ics' || provider === 'outlook' || provider === 'apple') {
       try {
         if (studyPlanId) {
           // First, fetch events from server if we have a study plan ID
           try {
-            // Call the API to get the study sessions
-            const response = await apiRequest(`/api/study-plans/${studyPlanId}/events`, {
-              method: 'GET'
+            // Call the API to get all events
+            const fetchEvents = getQueryFn<StudyPlanEvent[]>({ on401: "throw" });
+            const response = await fetchEvents(`/api/study-plans/${studyPlanId}/events`);
+            
+            if (!response || !Array.isArray(response)) {
+              throw new Error('Invalid response from API');
+            }
+            
+            // Filter events based on user selection
+            const filteredEvents = response.filter((event) => {
+              // Always include course events (assignments, exams, etc.)
+              if (event.type === 'assignment' || event.type === 'exam' || event.type === 'lab' || event.type === 'other') {
+                return true;
+              }
+              
+              // Only include study sessions if includeStudySessions is true
+              if (event.type === 'study') {
+                return includeStudySessions;
+              }
+              
+              // Include all other event types by default
+              return true;
             });
             
             // Process events from the response
-            const calendarEvents: CalendarEvent[] = response.map((event: any) => ({
+            const calendarEvents: CalendarEvent[] = filteredEvents.map((event) => ({
               title: event.title,
               description: event.description || '',
               startTime: new Date(event.startTime),
@@ -114,10 +96,11 @@ export function useCalendarIntegration() {
             downloadMultiEventICSFile(calendarEvents, `study_plan_${studyPlanId}`);
             
             // Mark as integrated in the database
-            await apiRequest(`/api/study-plans/${studyPlanId}/calendar-integration`, {
+            await apiRequest<{ message: string }>(`/api/study-plans/${studyPlanId}/calendar-integration`, {
               method: 'POST',
               body: {
                 provider: 'ics',
+                includeStudySessions,
                 courseSchedule
               }
             });
@@ -169,31 +152,12 @@ export function useCalendarIntegration() {
       }
     }
     
-    // For Google Calendar integration
-    if (provider === 'google') {
-      if (!hasGoogleAuth) {
-        toast({
-          title: 'Authentication required',
-          description: 'Please log in with Google to use Google Calendar integration',
-          variant: 'destructive',
-        });
-        return false;
-      }
-      
-      try {
-        await googleCalendarMutation.mutateAsync({ studyPlanId, courseSchedule });
-        return true;
-      } catch (error) {
-        return false;
-      }
-    }
-    
     return false;
   };
   
   return {
     integrateWithCalendar,
     hasGoogleAuth,
-    isIntegrating: googleCalendarMutation.isPending || icsDownloadMutation.isPending
+    isIntegrating: false
   };
 }
