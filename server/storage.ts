@@ -13,6 +13,7 @@ export interface IStorage {
   createOAuthToken(token: InsertOAuthToken): Promise<OAuthToken>;
   getOAuthToken(userId: number, provider: string): Promise<OAuthToken | undefined>;
   updateOAuthToken(id: number, updates: Partial<InsertOAuthToken>): Promise<OAuthToken | undefined>;
+  deleteOAuthTokensByUserId(userId: number): Promise<void>;
   
   // User operations
   getUser(id: number): Promise<User | undefined>;
@@ -21,6 +22,8 @@ export interface IStorage {
   getUserByGoogleId(googleId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined>;
+  getAllUsers(): Promise<User[]>;
+  deleteUser(id: number): Promise<void>;
 
   // Syllabus operations
   createSyllabus(syllabus: InsertSyllabus): Promise<Syllabus>;
@@ -28,10 +31,13 @@ export interface IStorage {
   getSyllabiByUser(userId: number): Promise<Syllabus[]>;
   updateSyllabusStatus(id: number, status: string): Promise<Syllabus | undefined>;
   updateSyllabusInfo(id: number, info: Partial<InsertSyllabus>): Promise<Syllabus | undefined>;
+  getAllSyllabi(): Promise<Syllabus[]>;
+  deleteSyllabus(id: number): Promise<void>;
 
   // Course events operations
   createCourseEvent(event: InsertCourseEvent): Promise<CourseEvent>;
   getCourseEvents(syllabusId: number): Promise<CourseEvent[]>;
+  deleteCourseEvent(id: number): Promise<void>;
   
   // Study plan operations
   createStudyPlan(plan: InsertStudyPlan): Promise<StudyPlan>;
@@ -39,11 +45,13 @@ export interface IStorage {
   getStudyPlansBySyllabus(syllabusId: number): Promise<StudyPlan[]>;
   getStudyPlansByUser(userId: number): Promise<StudyPlan[]>;
   updateStudyPlan(id: number, updates: Partial<InsertStudyPlan>): Promise<StudyPlan | undefined>;
+  deleteStudyPlan(id: number): Promise<void>;
 
   // Study session operations
   createStudySession(session: InsertStudySession): Promise<StudySession>;
   getStudySessions(studyPlanId: number): Promise<StudySession[]>;
   updateStudySession(id: number, updates: Partial<InsertStudySession>): Promise<StudySession | undefined>;
+  deleteStudySession(id: number): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -314,6 +322,48 @@ export class MemStorage implements IStorage {
     const updatedSession = { ...session, ...updates };
     this.studySessions.set(id, updatedSession);
     return updatedSession;
+  }
+
+  // Admin specific methods
+  async getAllUsers(): Promise<User[]> {
+    return Array.from(this.users.values())
+      .sort((a, b) => a.username.localeCompare(b.username));
+  }
+
+  async deleteUser(id: number): Promise<void> {
+    this.users.delete(id);
+  }
+
+  async deleteOAuthTokensByUserId(userId: number): Promise<void> {
+    // Find all tokens for this user and delete them
+    const tokensToDelete = Array.from(this.oauthTokens.values())
+      .filter(token => token.userId === userId)
+      .map(token => token.id);
+      
+    for (const tokenId of tokensToDelete) {
+      this.oauthTokens.delete(tokenId);
+    }
+  }
+
+  async getAllSyllabi(): Promise<Syllabus[]> {
+    return Array.from(this.syllabi.values())
+      .sort((a, b) => b.uploadedAt.getTime() - a.uploadedAt.getTime());
+  }
+
+  async deleteSyllabus(id: number): Promise<void> {
+    this.syllabi.delete(id);
+  }
+
+  async deleteCourseEvent(id: number): Promise<void> {
+    this.courseEvents.delete(id);
+  }
+
+  async deleteStudyPlan(id: number): Promise<void> {
+    this.studyPlans.delete(id);
+  }
+
+  async deleteStudySession(id: number): Promise<void> {
+    this.studySessions.delete(id);
   }
 }
 

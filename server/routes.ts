@@ -125,6 +125,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Otherwise, user is not authenticated
     return res.status(401).json({ message: 'Not authenticated' });
   });
+  
+  // Admin middleware - checks if user is an admin
+  const isAdmin = async (req: any, res: Response, next: NextFunction) => {
+    try {
+      const user = await storage.getUser(req.userId);
+      
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: 'Forbidden: Admin access required' });
+      }
+      
+      next();
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      return res.status(500).json({ message: 'Internal server error' });
+    }
+  };
 
   // PDF upload endpoint
   apiRouter.post('/syllabi/upload', upload.single('file'), async (req, res) => {
