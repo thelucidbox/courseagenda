@@ -24,7 +24,7 @@ import {
   Lightbulb,
   CreditCard
 } from "lucide-react";
-import { useTheme } from "@/hooks/use-theme";
+import { useTheme } from "../../hooks/use-theme";
 
 const Header = () => {
   const [location] = useLocation();

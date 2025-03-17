@@ -21,9 +21,9 @@ const Home = () => {
   return (
     <div>
       <div className="flex flex-col md:flex-row gap-6 mb-12">
-        <div className="bg-white rounded-lg shadow-sm p-6 md:w-2/3">
+        <div className="bg-card rounded-lg shadow-sm p-6 md:w-2/3">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Welcome to SyllabusSync</h1>
+            <h1 className="text-2xl font-bold">Welcome to CourseAgenda</h1>
             <Button asChild>
               <Link href="/upload">
                 Get Started
@@ -34,49 +34,49 @@ const Home = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <Card>
               <CardContent className="p-4 flex flex-col items-center text-center">
-                <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center mb-2">
-                  <FileText className="h-6 w-6 text-primary-600" />
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                  <FileText className="h-6 w-6 text-primary" />
                 </div>
                 <h3 className="font-medium">Upload Syllabus</h3>
-                <p className="text-sm text-gray-500 mt-1">Upload your course syllabus in PDF format</p>
+                <p className="text-sm text-muted-foreground mt-1">Upload your course syllabus in PDF format</p>
               </CardContent>
             </Card>
             
             <Card>
               <CardContent className="p-4 flex flex-col items-center text-center">
-                <div className="w-12 h-12 rounded-full bg-secondary-100 flex items-center justify-center mb-2">
-                  <Book className="h-6 w-6 text-secondary-600" />
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                  <Book className="h-6 w-6 text-primary" />
                 </div>
                 <h3 className="font-medium">Create Study Plan</h3>
-                <p className="text-sm text-gray-500 mt-1">Generate a personalized study schedule</p>
+                <p className="text-sm text-muted-foreground mt-1">Generate a personalized study schedule</p>
               </CardContent>
             </Card>
             
             <Card>
               <CardContent className="p-4 flex flex-col items-center text-center">
-                <div className="w-12 h-12 rounded-full bg-accent-100 flex items-center justify-center mb-2">
-                  <CalendarIcon className="h-6 w-6 text-accent-500" />
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                  <CalendarIcon className="h-6 w-6 text-primary" />
                 </div>
                 <h3 className="font-medium">Sync Calendar</h3>
-                <p className="text-sm text-gray-500 mt-1">Add study sessions to your calendar</p>
+                <p className="text-sm text-muted-foreground mt-1">Add study sessions to your calendar</p>
               </CardContent>
             </Card>
           </div>
           
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+          <div className="bg-accent/10 p-4 rounded-lg border">
             <h3 className="font-medium mb-2">Recent Uploads</h3>
             
             {isLoadingSyllabi ? (
-              <p className="text-sm text-gray-500">Loading recent uploads...</p>
+              <p className="text-sm text-muted-foreground">Loading recent uploads...</p>
             ) : syllabi && syllabi.length > 0 ? (
               <div className="space-y-2">
                 {syllabi.slice(0, 3).map((syllabus) => (
-                  <div key={syllabus.id} className="flex items-center justify-between p-3 bg-white rounded-md border border-gray-100">
+                  <div key={syllabus.id} className="flex items-center justify-between p-3 bg-card rounded-md border">
                     <div className="flex items-center space-x-3">
-                      <FileText className="text-red-500" />
+                      <FileText className="text-primary" />
                       <div>
                         <p className="text-sm font-medium">{syllabus.filename}</p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-muted-foreground">
                           Uploaded {formatDistanceToNow(new Date(syllabus.uploadedAt), { addSuffix: true })}
                         </p>
                       </div>
@@ -90,7 +90,7 @@ const Home = () => {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-500">No syllabi uploaded yet. Get started by uploading your first syllabus!</p>
+              <p className="text-sm text-muted-foreground">No syllabi uploaded yet. Get started by uploading your first syllabus!</p>
             )}
             
             {syllabi && syllabi.length > 0 && (
@@ -105,54 +105,54 @@ const Home = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm p-6 md:w-1/3">
+        <div className="bg-card rounded-lg shadow-sm p-6 md:w-1/3">
           <h3 className="text-lg font-semibold mb-4">How It Works</h3>
           
           <div className="space-y-4">
             <div className="flex space-x-3">
-              <div className="w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center flex-shrink-0">
+              <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
                 1
               </div>
               <div>
                 <h4 className="font-medium text-sm">Upload your syllabus</h4>
-                <p className="text-sm text-gray-500">Upload your course syllabus in PDF format.</p>
+                <p className="text-sm text-muted-foreground">Upload your course syllabus in PDF format.</p>
               </div>
             </div>
             
             <div className="flex space-x-3">
-              <div className="w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center flex-shrink-0">
+              <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
                 2
               </div>
               <div>
                 <h4 className="font-medium text-sm">Review extracted information</h4>
-                <p className="text-sm text-gray-500">We'll extract key dates, assignments, and exams from your syllabus. Review and make any necessary adjustments.</p>
+                <p className="text-sm text-muted-foreground">We'll extract key dates, assignments, and exams from your syllabus. Review and make any necessary adjustments.</p>
               </div>
             </div>
             
             <div className="flex space-x-3">
-              <div className="w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center flex-shrink-0">
+              <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
                 3
               </div>
               <div>
                 <h4 className="font-medium text-sm">Generate your study plan</h4>
-                <p className="text-sm text-gray-500">We'll create a personalized study plan with recommended study sessions based on your course schedule.</p>
+                <p className="text-sm text-muted-foreground">We'll create a personalized study plan with recommended study sessions based on your course schedule.</p>
               </div>
             </div>
             
             <div className="flex space-x-3">
-              <div className="w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center flex-shrink-0">
+              <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
                 4
               </div>
               <div>
                 <h4 className="font-medium text-sm">Sync with your calendar</h4>
-                <p className="text-sm text-gray-500">Add your study plan directly to Google Calendar, Apple Calendar, or other supported calendar services.</p>
+                <p className="text-sm text-muted-foreground">Add your study plan directly to Google Calendar, Apple Calendar, or other supported calendar services.</p>
               </div>
             </div>
           </div>
           
-          <div className="mt-6 p-4 bg-primary-50 rounded-md border border-primary-100">
-            <h4 className="font-medium text-sm mb-2 text-primary-800">Tips for Best Results</h4>
-            <ul className="text-sm text-gray-700 space-y-1">
+          <div className="mt-6 p-4 bg-primary/5 rounded-md border">
+            <h4 className="font-medium text-sm mb-2">Tips for Best Results</h4>
+            <ul className="text-sm space-y-1">
               <li className="flex items-start space-x-2">
                 <CheckIcon className="text-primary mt-0.5 h-4 w-4" />
                 <span>Make sure your PDF is text-searchable (not a scanned image)</span>
@@ -172,7 +172,7 @@ const Home = () => {
 
       {(studyPlans && studyPlans.length > 0) && (
         <div className="mt-12">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Your Recent Courses</h2>
+          <h2 className="text-xl font-bold mb-4">Your Recent Courses</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {studyPlans.slice(0, 3).map((plan) => (
@@ -199,12 +199,12 @@ const CourseCard = ({ studyPlan }: { studyPlan: StudyPlan }) => {
   const progress = Math.floor(Math.random() * 80) + 20; // Random progress between 20-100%
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-primary hover:shadow-md transition">
+    <div className="bg-card rounded-lg shadow-sm p-4 border-l-4 border-primary hover:shadow-md transition">
       <div className="flex justify-between items-start mb-2">
         <h3 className="font-semibold">{studyPlan.title}</h3>
-        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Active</span>
+        <span className="text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 px-2 py-1 rounded">Active</span>
       </div>
-      <p className="text-sm text-gray-500 mb-2">Created on {new Date(studyPlan.createdAt).toLocaleDateString()}</p>
+      <p className="text-sm text-muted-foreground mb-2">Created on {new Date(studyPlan.createdAt).toLocaleDateString()}</p>
       
       <div className="mb-4">
         <div className="flex justify-between text-xs mb-1">
@@ -214,11 +214,11 @@ const CourseCard = ({ studyPlan }: { studyPlan: StudyPlan }) => {
         <Progress value={progress} className="h-1.5" />
       </div>
       
-      <div className="border-t border-gray-100 pt-3">
+      <div className="border-t border-border pt-3">
         <h4 className="text-xs font-medium mb-2">Calendar Status</h4>
         <div className="flex items-center text-sm">
           {studyPlan.calendarIntegrated ? (
-            <span className="text-green-600 flex items-center">
+            <span className="text-green-600 dark:text-green-400 flex items-center">
               <CheckIcon className="mr-1 h-4 w-4" /> Synced with calendar
             </span>
           ) : (
