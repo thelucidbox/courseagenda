@@ -16,6 +16,7 @@ import Profile from "@/pages/Profile";
 import CalendarPermissions from "./pages/CalendarPermissions";
 import CalendarSuccess from "./pages/CalendarSuccess";
 import CalendarError from "./pages/CalendarError";
+import { ThemeProvider } from "./components/ThemeProvider";
 
 function Router() {
   const [location] = useLocation();
@@ -42,13 +43,22 @@ function Router() {
 }
 
 function App() {
+  // Apply dark mode on initial load
+  useEffect(() => {
+    const root = window.document.documentElement;
+    const savedTheme = localStorage.getItem("theme") || "dark";
+    root.classList.add(savedTheme);
+  }, []);
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <MainLayout>
-        <Router />
-      </MainLayout>
-      <Toaster />
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <MainLayout>
+          <Router />
+        </MainLayout>
+        <Toaster />
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
 

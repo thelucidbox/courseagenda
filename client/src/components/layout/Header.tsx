@@ -21,10 +21,9 @@ import {
   Upload, 
   Sun, 
   Moon, 
-  Lightbulb,
   CreditCard
 } from "lucide-react";
-import { useTheme } from "../../hooks/use-theme";
+import { useTheme } from "../../components/ThemeProvider";
 
 const Header = () => {
   const [location] = useLocation();
@@ -42,6 +41,10 @@ const Header = () => {
     { href: "/courses", label: "My Courses", icon: <BookOpen className="mr-2 h-4 w-4" /> },
     { href: "/upload", label: "Upload Syllabus", icon: <Upload className="mr-2 h-4 w-4" /> },
   ];
+
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+  };
 
   return (
     <header className="sticky top-0 z-30 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -74,7 +77,7 @@ const Header = () => {
             variant="ghost" 
             size="icon" 
             className="mr-2" 
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            onClick={toggleTheme}
             aria-label="Toggle theme"
           >
             {theme === 'dark' ? (
@@ -123,7 +126,7 @@ const Header = () => {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+                  <DropdownMenuItem onClick={toggleTheme}>
                     {theme === 'dark' ? (
                       <Sun className="mr-2 h-4 w-4" />
                     ) : (
