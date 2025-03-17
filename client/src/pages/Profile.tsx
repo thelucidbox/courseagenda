@@ -277,7 +277,7 @@ export default function Profile() {
                     </p>
                   </div>
                 </div>
-                <Badge variant={user?.googleId ? "success" : "outline"}>
+                <Badge variant={user?.googleId ? "default" : "outline"} className={user?.googleId ? "bg-green-500" : ""}>
                   {user?.googleId ? "Connected" : "Not Connected"}
                 </Badge>
               </div>
@@ -293,7 +293,7 @@ export default function Profile() {
                     </p>
                   </div>
                 </div>
-                <Badge variant="success">Available</Badge>
+                <Badge variant="default" className="bg-green-500">Available</Badge>
               </div>
             </div>
           </CardContent>
