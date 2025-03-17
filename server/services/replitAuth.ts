@@ -87,8 +87,8 @@ export async function setupAuth(app: Express) {
   app.get(
     "/api/auth/replit/callback",
     passport.authenticate('replit', {
-      successReturnToOrRedirect: "/",
-      failureRedirect: "/login",
+      successReturnToOrRedirect: "/dashboard",
+      failureRedirect: "/",
     }),
   );
 
