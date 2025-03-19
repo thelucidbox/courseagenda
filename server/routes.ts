@@ -3,6 +3,8 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { checkDatabase } from "./db";
 import rateLimit from "express-rate-limit";
+import { generateHealthCheck } from "./utils/monitoring";
+import logger from "./utils/error-logger";
 import { 
   insertSyllabusSchema, 
   insertCourseEventSchema, 
@@ -658,6 +660,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Health check endpoint - available without authentication
+  app.get('/health', async (req, res) => {
+    try {
+      // Generate detailed health check data
+      const healthData = await generateHealthCheck(storage);
+      
+      // Log health check requests in development
+      if (process.env.NODE_ENV !== 'production') {
+        logger.info('Health check requested', req, { 
+          status: healthData.status,
+          memoryUsage: `${Math.round(healthData.memory.heapUsed / 1024 / 1024)}MB / ${Math.round(healthData.memory.heapTotal / 1024 / 1024)}MB`
+        });
+      }
+      
+      // Set status code based on health status
+      let statusCode = 200;
+      
+      if (healthData.status === 'degraded') {
+        statusCode = 200; // Still operational but with warnings
+      } else if (healthData.status === 'unhealthy') {
+        statusCode = 503; // Service unavailable
+      }
+      
+      // For non-production environments, provide full details
+      if (process.env.NODE_ENV !== 'production') {
+        return res.status(statusCode).json(healthData);
+      }
+      
+      // For production, provide limited information (don't expose internals)
+      const productionResponse = {
+        status: healthData.status,
+        version: healthData.version,
+        timestamp: healthData.timestamp,
+        database: healthData.storage.database.connected,
+        uptime: Math.round(healthData.uptime.serverUptime)
+      };
+      
+      return res.status(statusCode).json(productionResponse);
+    } catch (error) {
+      logger.error('Health check failed', req, error instanceof Error ? error : new Error(String(error)));
+      return res.status(500).json({ 
+        status: 'unhealthy',
+        timestamp: new Date().toISOString(),
+        message: 'Health check failed'
+      });
+    }
+  });
+
   // Register API routes
   app.use('/api', apiRouter);
 
@@ -829,47 +879,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Health check endpoint for monitoring and deployment
-  app.get('/health', async (req, res) => {
-    try {
-      // Check database connection
-      const dbStatus = await checkDatabase();
-      
-      // Basic health information
-      const healthInfo = {
-        status: 'ok',
-        timestamp: new Date().toISOString(),
-        version: process.env.npm_package_version || '1.0.0',
-        environment: process.env.NODE_ENV || 'development',
-        database: {
-          connected: dbStatus
-        },
-        memory: {
-          heapTotal: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
-          heapUsed: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
-          external: Math.round(process.memoryUsage().external / 1024 / 1024),
-          rss: Math.round(process.memoryUsage().rss / 1024 / 1024)
-        },
-        uptime: Math.round(process.uptime())
-      };
-      
-      // If database is not connected, report error
-      if (!dbStatus) {
-        healthInfo.status = 'error';
-        return res.status(500).json(healthInfo);
-      }
-      
-      return res.status(200).json(healthInfo);
-    } catch (error) {
-      // If any check fails, report error
-      return res.status(500).json({
-        status: 'error',
-        timestamp: new Date().toISOString(),
-        error: error instanceof Error ? error.message : 'Unknown error',
-        uptime: Math.round(process.uptime())
-      });
-    }
-  });
+  // The enhanced health check endpoint is already defined earlier in this file
 
   const httpServer = createServer(app);
   

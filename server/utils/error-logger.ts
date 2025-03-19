@@ -1,14 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import { ApiError } from './error-handler';
-
-// Define severity levels
-export enum LogLevel {
-  INFO = 'info',
-  WARN = 'warn',
-  ERROR = 'error',
-  FATAL = 'fatal',
-}
+import { recordError } from './monitoring';
+import { LogLevel } from './log-types';
 
 // Define log entry interface
 interface LogEntry {
@@ -161,6 +155,19 @@ export function log(
     // Write to file in production
     if (config.logToFile) {
       writeLogToFile(formattedEntry);
+    }
+    
+    // Record error statistics for monitoring
+    if (level === LogLevel.WARN || level === LogLevel.ERROR || level === LogLevel.FATAL) {
+      let errorCode: string | undefined;
+      
+      if (error instanceof ApiError && error.code) {
+        errorCode = error.code;
+      } else if (context && 'code' in context) {
+        errorCode = String(context.code);
+      }
+      
+      recordError(level, message, errorCode);
     }
   }
 }
