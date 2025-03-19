@@ -128,7 +128,7 @@ const Home = () => {
                       <div>
                         <p className="font-medium text-text-primary">{syllabus.filename || `Syllabus ${syllabus.id}`}</p>
                         <p className="text-sm text-text-secondary">
-                          Uploaded {formatDistanceToNow(new Date(syllabus.uploadedAt || syllabus.createdAt), { addSuffix: true })}
+                          Uploaded {formatDistanceToNow(new Date(syllabus.uploadedAt || Date.now()), { addSuffix: true })}
                         </p>
                       </div>
                     </div>
@@ -301,7 +301,7 @@ const StyledCourseCard = ({ studyPlan }: { studyPlan: StudyPlan }) => {
         <h3 className="font-semibold text-text-primary">{studyPlan.title}</h3>
         <span className="text-xs bg-prodigy-light-purple/20 text-prodigy-purple px-2 py-1 rounded-full">Active</span>
       </div>
-      <p className="text-sm text-text-secondary mb-4">Created on {new Date(studyPlan.createdAt).toLocaleDateString()}</p>
+      <p className="text-sm text-text-secondary mb-4">Created on {new Date(studyPlan.createdAt || Date.now()).toLocaleDateString()}</p>
       
       <div className="mb-5">
         <div className="flex justify-between text-sm mb-1.5">

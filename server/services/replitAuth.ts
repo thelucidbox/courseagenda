@@ -82,16 +82,21 @@ export async function setupAuth(app: Express) {
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
   app.get("/api/auth/replit", passport.authenticate('replit'));
+  
+  // Add a simpler login endpoint that redirects to the Replit auth
+  app.get("/api/login", (req, res) => {
+    res.redirect("/api/auth/replit");
+  });
 
   app.get(
     "/api/auth/replit/callback",
     passport.authenticate('replit', {
-      successRedirect: "/dashboard",
+      successRedirect: "/home",
       failureRedirect: "/",
     }),
     (req, res) => {
-      // Ensure we actually redirect to dashboard
-      res.redirect("/dashboard");
+      // Ensure we actually redirect to home
+      res.redirect("/home");
     }
   );
 
