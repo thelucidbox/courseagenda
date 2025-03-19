@@ -5,16 +5,24 @@ import passport from "passport";
 import session from "express-session";
 import type { Express, RequestHandler } from "express";
 import { storage } from "../storage";
+import createMemoryStore from "memorystore";
+
 if (!process.env.REPLIT_DOMAINS) {
   throw new Error("Environment variable REPLIT_DOMAINS not provided");
 }
 
 export async function setupAuth(app: Express) {
+  // Create memory store for sessions
+  const MemoryStore = createMemoryStore(session);
+  const sessionStore = new MemoryStore({
+    checkPeriod: 86400000 // prune expired entries every 24h
+  });
+  
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET!,
     resave: false,
     saveUninitialized: false,
-    store: storage.sessionStore, // Use PostgreSQL session store
+    store: sessionStore,
     cookie: {
       secure: process.env.NODE_ENV === 'production', 
       sameSite: 'lax',

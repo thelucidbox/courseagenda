@@ -52,6 +52,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup Replit Auth
   await setupAuth(app);
   
+  // Add a direct user authentication check endpoint that doesn't use the API router
+  // This avoids the session store issue by not going through middleware chains
+  app.get('/api/auth/user', (req, res) => {
+    if (req.isAuthenticated && req.isAuthenticated()) {
+      return res.json(req.user);
+    }
+    return res.status(401).json({ message: 'Not authenticated' });
+  });
+  
   const apiRouter = Router();
   
   // Google OAuth Authentication Routes
