@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { log } from '../vite';
-import logger, { LogLevel } from './error-logger';
+import logger from './error-logger';
+import { LogLevel } from './log-types';
 
 // Custom error classes
 export class ApiError extends Error {

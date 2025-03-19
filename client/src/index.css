@@ -2,67 +2,78 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
 @layer base {
   :root {
-    --background: 0 0% 98%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 0 0% 100%;
+    --foreground: 0 0% 10%; /* Text primary: #1A1A1A */
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 0 0% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 0 0% 10%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary: Purple */
+    --primary: 274 88% 37%; /* #7209B7 */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 172.5 84% 31.6%;
-    --secondary-foreground: 210 40% 98%;
+    /* Secondary: Yellow-Orange */
+    --secondary: 39 100% 57%; /* #FFB627 */
+    --secondary-foreground: 0 0% 10%;
 
     --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted-foreground: 0 0% 40%; /* Text secondary: #666666 */
 
-    --accent: 31.5 91.7% 47.3%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 215 100% 95%; /* Light Blue: #E2F0FF */
+    --accent-foreground: 274 88% 37%; /* Purple on light blue */
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 274 40% 90%;
+    --input: 274 40% 90%;
+    --ring: 274 88% 37%; /* Match primary */
 
-    --radius: 0.5rem;
+    --radius: 1rem;
+
+    /* Chart colors */
+    --chart-1: 274 88% 37%; /* Purple */
+    --chart-2: 39 100% 57%; /* Yellow-Orange */
+    --chart-3: 274 61% 59%; /* Light Purple */
+    --chart-4: 39 100% 75%; /* Light Yellow */
+    --chart-5: 215 100% 95%; /* Light Blue */
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 224 71% 4%;
+    --foreground: 213 31% 91%;
 
-    --card: 222.2 84% 6.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 224 71% 6%;
+    --card-foreground: 213 31% 91%;
 
-    --popover: 222.2 84% 6.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 224 71% 6%;
+    --popover-foreground: 213 31% 91%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 274 88% 37%; /* Keep same primary */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 172.5 84% 31.6%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 39 100% 57%; /* Keep same secondary */
+    --secondary-foreground: 0 0% 10%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 223 47% 11%;
+    --muted-foreground: 215.4 16.3% 56.9%;
 
-    --accent: 31.5 91.7% 47.3%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 223 47% 15%;
+    --accent-foreground: 274 88% 70%; /* Lighter purple on dark */
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border: 274 30% 26%;
+    --input: 274 30% 26%;
+    --ring: 274 88% 37%;
   }
 
   * {
@@ -72,10 +83,77 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
   }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-text-primary tracking-wide;
+  }
+
+  h1 {
+    @apply font-extrabold text-3xl md:text-4xl lg:text-5xl;
+  }
+
+  h2 {
+    @apply font-bold text-2xl md:text-3xl lg:text-4xl;
+  }
+
+  h3 {
+    @apply font-semibold text-xl md:text-2xl;
+  }
+
+  p {
+    @apply text-text-body leading-relaxed;
+  }
 }
 
 @layer components {
+  /* Cards */
+  .prodigy-card {
+    @apply rounded-xl bg-white shadow-prodigy-sm hover:shadow-prodigy-md transition-shadow duration-300 border border-border/40 overflow-hidden;
+  }
+
+  .feature-card {
+    @apply bg-prodigy-purple text-white rounded-xl p-6 shadow-prodigy-md relative overflow-hidden;
+  }
+
+  .testimonial-card {
+    @apply bg-white shadow-prodigy-sm hover:shadow-prodigy-md rounded-xl p-6 border border-border/40 transition-shadow duration-300;
+  }
+
+  /* Buttons */
+  .btn-primary {
+    @apply bg-prodigy-purple text-white rounded-3xl px-6 py-3 font-semibold hover:bg-prodigy-light-purple transition-colors duration-300 shadow-sm hover:shadow-md;
+  }
+
+  .btn-secondary {
+    @apply bg-white text-prodigy-purple rounded-3xl px-6 py-3 font-semibold border border-prodigy-purple hover:bg-prodigy-light-purple/10 transition-colors duration-300;
+  }
+
+  .btn-yellow {
+    @apply bg-prodigy-yellow text-text-primary rounded-3xl px-6 py-3 font-semibold hover:bg-prodigy-light-yellow transition-colors duration-300 shadow-sm hover:shadow-md;
+  }
+
+  /* Original syllabus card kept for compatibility */
   .syllabus-card {
-    @apply border-l-4 border-primary hover:shadow-md transition;
+    @apply border-l-4 border-primary hover:shadow-prodigy-md transition rounded-lg;
+  }
+  
+  /* Decorative elements */
+  .floating-shape {
+    @apply absolute pointer-events-none opacity-70 animate-float;
+  }
+
+  /* Input styles */
+  .input-prodigy {
+    @apply rounded-xl border-border/60 focus:border-prodigy-purple focus:ring-1 focus:ring-prodigy-purple;
+  }
+
+  /* Container with decorative background */
+  .prodigy-container {
+    @apply relative overflow-hidden rounded-2xl bg-gradient-to-br from-prodigy-purple to-prodigy-light-purple text-white p-8;
+  }
+  
+  /* Section spacing */
+  .section-spacing {
+    @apply py-12 md:py-16 lg:py-24;
   }
 }

@@ -10,7 +10,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Add security headers
+// Add comprehensive security headers
 app.use((req, res, next) => {
   // Help protect against XSS attacks
   res.setHeader('X-XSS-Protection', '1; mode=block');
@@ -21,9 +21,50 @@ app.use((req, res, next) => {
   // Control iframe embedding
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   
+  // Referrer Policy to control information sent in the Referer header
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  
+  // Permissions Policy (formerly Feature Policy) to control browser features
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  
+  // Content Security Policy
+  const cspDirectives = [
+    "default-src 'self'",
+    // Allow inline scripts and styles for development only
+    process.env.NODE_ENV === 'production' 
+      ? "script-src 'self'" 
+      : "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+    process.env.NODE_ENV === 'production'
+      ? "style-src 'self'" 
+      : "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: https:",
+    "font-src 'self' data:",
+    "connect-src 'self' https://generativelanguage.googleapis.com", // Allow Gemini API
+    "frame-ancestors 'self'",
+    "form-action 'self'",
+    "base-uri 'none'",
+    "object-src 'none'"
+  ];
+  
+  // Only set CSP in production to avoid development issues
+  if (process.env.NODE_ENV === 'production') {
+    res.setHeader('Content-Security-Policy', cspDirectives.join('; '));
+  } else {
+    // In development, use CSP Report-Only mode to see violations without blocking
+    res.setHeader('Content-Security-Policy-Report-Only', cspDirectives.join('; '));
+  }
+  
   // Strict Transport Security (only in production)
   if (process.env.NODE_ENV === 'production') {
-    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    res.setHeader('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
+  }
+  
+  // Cache control - prevent caching of API responses
+  if (req.path.startsWith('/api') || req.path === '/health') {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
   }
   
   next();

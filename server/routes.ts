@@ -133,16 +133,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return next();
     }
     
-    // For development, fallback to user ID 1
-    // In production, this fallback is disabled and proper auth is enforced
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('DEV MODE: Using fallback authentication with user ID 1');
-      req.userId = 1;
-      return next();
-    }
+    // No development fallbacks - proper authentication required in all environments
+    // This ensures consistent behavior between development and production
     
-    // Otherwise, user is not authenticated
-    return res.status(401).json({ message: 'Not authenticated' });
+    // Log the authentication failure
+    logger.warn('Authentication required', req, {
+      path: req.originalUrl,
+      method: req.method,
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    });
+    
+    // User is not authenticated
+    return res.status(401).json({ 
+      message: 'Authentication required',
+      code: 'AUTH_REQUIRED'
+    });
   });
   
   // Admin middleware - checks if user is an admin
