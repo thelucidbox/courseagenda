@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { useEffect, lazy, Suspense } from "react";
 import NotFound from "@/pages/not-found";
 import MainLayout from "@/components/layout/MainLayout";
-import Home from "@/pages/Home";
+import Dashboard from "@/pages/Dashboard";
 import UploadSyllabus from "@/pages/UploadSyllabus";
 import ExtractInfo from "@/pages/ExtractInfo";
 import CreateStudyPlan from "@/pages/CreateStudyPlan";
@@ -51,8 +51,8 @@ function Router() {
   
   return (
     <Switch>
-      <Route path="/" component={isAuthenticated ? Home : Landing} />
-      <Route path="/dashboard" component={isAuthenticated ? Home : Landing} />
+      <Route path="/" component={isAuthenticated ? Dashboard : Landing} />
+      <Route path="/dashboard" component={isAuthenticated ? Dashboard : Landing} />
       <Route path="/upload" component={isAuthenticated ? UploadSyllabus : Landing} />
       <Route path="/calendar-permissions/:id?" component={isAuthenticated ? CalendarPermissions : Landing} />
       <Route path="/extract/:id" component={isAuthenticated ? ExtractInfo : Landing} />

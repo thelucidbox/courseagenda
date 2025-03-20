@@ -19,10 +19,9 @@ export function ProdigyNavbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navigation = [
-    { name: "Home", href: "/", current: location === "/" },
-    { name: "Courses", href: "/courses", current: location === "/courses" },
-    { name: "Upload Syllabus", href: "/upload", current: location === "/upload" },
-    { name: "My Study Plans", href: "/plans", current: location === "/plans" },
+    { name: "Home", href: "/", current: location === "/" || location === "/dashboard", icon: "home" },
+    { name: "My Courses", href: "/courses", current: location === "/courses", icon: "book-open" },
+    { name: "Upload Syllabus", href: "/upload", current: location === "/upload", icon: "upload" },
   ];
 
   const toggleMobileMenu = () => {
@@ -46,13 +45,16 @@ export function ProdigyNavbar() {
             <div className="flex flex-shrink-0 items-center">
               <Link href="/">
                 <div className="flex items-center cursor-pointer">
-                  <div className="w-8 h-8 rounded-md bg-prodigy-purple flex items-center justify-center mr-2">
-                    <BookOpen className="w-5 h-5 text-white" />
+                  <div className="w-8 h-8 flex items-center justify-center mr-2">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <rect width="24" height="24" rx="4" fill="#7209B7" />
+                      <path d="M17 5H7C5.89543 5 5 5.89543 5 7V17C5 18.1046 5.89543 19 7 19H17C18.1046 19 19 18.1046 19 17V7C19 5.89543 18.1046 5 17 5Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M5 9H19" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M9 5V19" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
                   </div>
-                  <span className="text-xl font-bold">
-                    <GradientText from="from-prodigy-purple" to="to-prodigy-light-purple">
-                      CourseAgenda
-                    </GradientText>
+                  <span className="text-lg font-bold text-gray-900">
+                    CourseAgenda
                   </span>
                 </div>
               </Link>
@@ -63,10 +65,10 @@ export function ProdigyNavbar() {
               {navigation.map((item) => (
                 <Link key={item.name} href={item.href}>
                   <a
-                    className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
+                    className={`inline-flex items-center px-3 py-1 text-sm font-medium ${
                       item.current
-                        ? "border-b-2 border-prodigy-purple text-prodigy-purple"
-                        : "text-text-secondary hover:text-prodigy-purple hover:border-b-2 hover:border-prodigy-purple/40"
+                        ? "text-gray-900 font-semibold"
+                        : "text-gray-600 hover:text-gray-900"
                     }`}
                   >
                     {item.name}
