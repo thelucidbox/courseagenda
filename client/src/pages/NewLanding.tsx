@@ -46,7 +46,7 @@ export default function NewLanding() {
                 CourseAgenda helps students automatically organize their academic schedules, turning syllabi into structured study plans with calendar integration.
               </p>
               
-              <div className="mt-12 flex flex-wrap gap-4">
+              <div className="mt-12">
                 <a 
                   href="/api/auth/test" 
                   className="inline-flex items-center px-8 py-3.5 bg-[#7209B7] text-white font-medium rounded-full shadow-md hover:shadow-lg transform hover:scale-105 transition-all"
@@ -55,12 +55,6 @@ export default function NewLanding() {
                   <svg className="ml-2 w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                   </svg>
-                </a>
-                <a 
-                  href="#features" 
-                  className="inline-flex items-center px-8 py-3.5 border border-gray-200 text-[#666666] font-medium rounded-full hover:bg-gray-50 shadow-sm hover:shadow transition-all"
-                >
-                  Learn More
                 </a>
               </div>
               
