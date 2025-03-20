@@ -69,11 +69,10 @@ function Router() {
 }
 
 function App() {
-  // Apply dark mode on initial load
+  // Apply light mode on initial load
   useEffect(() => {
     const root = window.document.documentElement;
-    const savedTheme = localStorage.getItem("theme") || "dark";
-    root.classList.add(savedTheme);
+    root.classList.add("light");
   }, []);
 
   return (
