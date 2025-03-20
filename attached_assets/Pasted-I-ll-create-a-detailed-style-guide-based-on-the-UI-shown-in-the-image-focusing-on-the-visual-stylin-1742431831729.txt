@@ -1,0 +1,99 @@
+I'll create a detailed style guide based on the UI shown in the image, focusing on the visual styling elements rather than the specific content or layout.
+
+# ProdigyLearn UI Style Guide
+
+## Color Palette
+
+### Primary Colors
+- **Purple**: A vibrant purple (#7209B7 or similar) used for primary UI elements, buttons, and section backgrounds
+- **Yellow/Orange**: A bright yellow-orange (#FFB627 or similar) used for accents, highlights, and secondary buttons
+- **White**: Clean white (#FFFFFF) for background and text areas
+
+### Secondary Colors
+- **Light Purple**: A softer purple for borders and secondary elements
+- **Light Blue**: Pale blue accents (#E2F0FF or similar) for some decorative elements
+- **Light Yellow**: Pale yellow for minor accents
+
+## Typography
+
+### Headings
+- **Primary Font**: Sans-serif font family (appears to be a rounded sans-serif like Poppins or similar)
+- **Weight**: Bold/Heavy (600-800) for main headings
+- **Color**: Dark gray/almost black (#1A1A1A) for maximum readability
+- **Style**: Clean with generous letter-spacing
+
+### Body Text
+- **Font**: Same sans-serif family as headings but in regular weight (400)
+- **Size**: Multiple tiers (16px for primary content, 14px for secondary content)
+- **Line Height**: Approximately 1.5-1.6× the font size for good readability
+- **Color**: Dark gray (#333333) for body text, lighter gray (#666666) for secondary text
+
+## UI Elements
+
+### Cards/Content Blocks
+- **Shape**: Rounded corners (12-16px radius) on all card elements
+- **Shadow**: Subtle drop shadows (4-8px blur, very low opacity)
+- **Border**: Either no visible border or very subtle light borders
+- **Background**: White or very light backgrounds for content areas
+
+### Buttons
+- **Primary Button**: Purple background (#7209B7) with white text, rounded corners (24-30px radius, making them pill-shaped)
+- **Secondary Button**: White or transparent with purple border and purple text
+- **Padding**: Generous padding (16-20px horizontal, 10-12px vertical)
+- **Hover State**: Slight darkening or brightening effect (not visible in static image)
+
+### Icons
+- **Style**: Simple, modern line icons with occasional filled elements
+- **Color**: Primarily in the purple or yellow-orange of the brand palette
+- **Size**: Proportional to nearby text (approximately 24px)
+
+## Visual Styling Techniques
+
+### Decorative Elements
+- **Floating Shapes**: Small decorative elements (stars, crosses, circles) in brand colors floating around content areas
+- **Gradient Overlays**: Subtle gradient overlays on some sections (particularly purple to slightly darker purple)
+
+### Image Treatment
+- **Content Images**: Appear within rounded rectangle containers or cut into rounded shapes
+- **People Photos**: Natural, authentic-looking photos of people using the product
+- **Overlapping Elements**: Slight overlapping of elements for depth (images slightly overlapping card borders)
+
+### Visual Hierarchy
+- **Spacing**: Generous white space between sections (40-60px)
+- **Section Separation**: Clear visual separation between different content sections
+- **Emphasis**: Key elements highlighted with color, size, or position
+
+## Component-Specific Styling
+
+### Feature Cards
+- **Container**: Square or slightly rectangular with heavily rounded corners (16-20px)
+- **Background**: Deep purple (#7209B7) with white text
+- **Icons**: Yellow-orange circular icon containers with white icons
+- **Numbering**: Large, bold numbering in yellow-orange
+
+### Testimonial Section
+- **Quotes**: Light background cards with subtle shadow
+- **User Images**: Small circular profile images
+- **Rating**: Yellow-orange stars for ratings
+- **Border**: No visible border, but clear shadow to define the card edges
+
+### Image Showcases
+- **Container Shape**: Rounded rectangle or square with heavily rounded corners
+- **Border**: No visible border, but defined with shadow or background color change
+- **Position**: Often slightly angled or with a tilted perspective for dynamism
+- **Overlap**: Elements frequently overlap slightly with decorative elements
+
+## Overall Feel & Design Philosophy
+
+- **Playful Professional**: Professional enough for an educational product but with playful elements
+- **Airy Layout**: Generous white space creating an open, uncluttered feel
+- **Dynamic Elements**: Slight rotation of elements, floating decorations, and overlapping components create energy
+- **Rounded Softness**: Almost everything has rounded corners, creating a friendly, approachable feel
+- **Consistent Brand**: The purple and yellow-orange appear consistently throughout all major elements
+
+## Animation Hints (based on static image inference)
+- **Hover Effects**: Likely subtle scaling (1.02-1.05×) on cards and buttons
+- **Transitions**: Soft transitions between states (0.2-0.3s duration)
+- **Micro-interactions**: Decorative elements might have subtle floating animations
+
+This style guide should help your engineer implement the visual language of this UI while allowing flexibility for your different application content.

@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { GradientText } from "@/components/ui/decorative-elements";
+import { FloatingShape } from "@/components/ui/floating-shape";
 import { Menu, X, BookOpen, User, Calendar, LogOut, Settings } from "lucide-react";
 import {
   DropdownMenu,
@@ -37,23 +37,25 @@ export function ProdigyNavbar() {
   };
 
   return (
-    <div className="bg-white border-b border-border/30">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 justify-between">
+    <div className="bg-white border-b border-gray-100 relative">
+      <FloatingShape type="circle" color="purple" top="10px" left="5%" size="sm" />
+      <FloatingShape type="star" color="accent" bottom="10px" right="10%" size="sm" />
+      
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="flex h-16 justify-between items-center">
           {/* Logo and desktop navigation */}
           <div className="flex">
             <div className="flex flex-shrink-0 items-center">
               <Link href="/">
                 <div className="flex items-center cursor-pointer">
-                  <div className="w-8 h-8 flex items-center justify-center mr-2">
+                  <div className="w-10 h-10 flex items-center justify-center mr-2 bg-[#7209B7] rounded-xl shadow-sm">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <rect width="24" height="24" rx="4" fill="#7209B7" />
                       <path d="M17 5H7C5.89543 5 5 5.89543 5 7V17C5 18.1046 5.89543 19 7 19H17C18.1046 19 19 18.1046 19 17V7C19 5.89543 18.1046 5 17 5Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       <path d="M5 9H19" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       <path d="M9 5V19" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   </div>
-                  <span className="text-lg font-bold text-gray-900">
+                  <span className="text-xl font-bold text-[#1A1A1A]">
                     CourseAgenda
                   </span>
                 </div>
@@ -61,14 +63,14 @@ export function ProdigyNavbar() {
             </div>
             
             {/* Desktop navigation */}
-            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+            <div className="hidden sm:ml-8 sm:flex sm:space-x-8">
               {navigation.map((item) => (
                 <Link key={item.name} href={item.href}>
                   <a
-                    className={`inline-flex items-center px-3 py-1 text-sm font-medium ${
+                    className={`inline-flex items-center px-4 py-1 text-sm font-medium transition-colors ${
                       item.current
-                        ? "text-gray-900 font-semibold"
-                        : "text-gray-600 hover:text-gray-900"
+                        ? "text-[#7209B7] font-semibold"
+                        : "text-[#666666] hover:text-[#7209B7]"
                     }`}
                   >
                     {item.name}
@@ -84,51 +86,51 @@ export function ProdigyNavbar() {
               <div className="flex items-center">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="rounded-full p-0 w-10 h-10">
-                      <Avatar className="h-8 w-8 bg-prodigy-light-purple/20">
+                    <Button variant="ghost" className="rounded-full p-0 w-10 h-10 hover:bg-[#7209B7]/10">
+                      <Avatar className="h-9 w-9 border-2 border-[#7209B7]/20">
                         <AvatarImage src={user?.profileImage} />
-                        <AvatarFallback className="bg-prodigy-purple text-white">
+                        <AvatarFallback className="bg-[#7209B7] text-white font-medium">
                           {user?.name ? getInitials(user.name) : user?.username?.substring(0, 2).toUpperCase() || "U"}
                         </AvatarFallback>
                       </Avatar>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuContent align="end" className="w-56 rounded-xl border-gray-100 shadow-lg">
                     <div className="px-4 py-3">
-                      <p className="text-sm font-medium text-text-primary truncate">
+                      <p className="text-sm font-semibold text-[#1A1A1A] truncate">
                         {user?.name || user?.username}
                       </p>
-                      <p className="text-xs text-text-secondary truncate">{user?.email}</p>
+                      <p className="text-xs text-[#666666] truncate mt-1">{user?.email}</p>
                     </div>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
+                    <DropdownMenuSeparator className="bg-gray-100" />
+                    <DropdownMenuItem asChild className="focus:bg-[#7209B7]/5 focus:text-[#7209B7]">
                       <Link href="/profile">
-                        <a className="flex cursor-pointer items-center">
-                          <User className="mr-2 h-4 w-4" />
+                        <a className="flex cursor-pointer items-center py-2">
+                          <User className="mr-3 h-4 w-4" />
                           <span>Profile</span>
                         </a>
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
+                    <DropdownMenuItem asChild className="focus:bg-[#7209B7]/5 focus:text-[#7209B7]">
                       <Link href="/calendar">
-                        <a className="flex cursor-pointer items-center">
-                          <Calendar className="mr-2 h-4 w-4" />
+                        <a className="flex cursor-pointer items-center py-2">
+                          <Calendar className="mr-3 h-4 w-4" />
                           <span>Calendar</span>
                         </a>
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
+                    <DropdownMenuItem asChild className="focus:bg-[#7209B7]/5 focus:text-[#7209B7]">
                       <Link href="/settings">
-                        <a className="flex cursor-pointer items-center">
-                          <Settings className="mr-2 h-4 w-4" />
+                        <a className="flex cursor-pointer items-center py-2">
+                          <Settings className="mr-3 h-4 w-4" />
                           <span>Settings</span>
                         </a>
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <a href="/api/auth/logout" className="flex cursor-pointer items-center text-red-600">
-                        <LogOut className="mr-2 h-4 w-4" />
+                    <DropdownMenuSeparator className="bg-gray-100" />
+                    <DropdownMenuItem asChild className="focus:bg-red-50">
+                      <a href="/api/auth/logout" className="flex cursor-pointer items-center text-red-600 py-2">
+                        <LogOut className="mr-3 h-4 w-4" />
                         <span>Logout</span>
                       </a>
                     </DropdownMenuItem>
@@ -139,7 +141,7 @@ export function ProdigyNavbar() {
               <div className="flex items-center space-x-3">
                 <Button 
                   asChild 
-                  className="bg-prodigy-purple hover:bg-prodigy-purple/90 text-white"
+                  className="bg-[#7209B7] hover:bg-[#7209B7]/90 text-white px-6 py-2 rounded-full font-medium"
                 >
                   <a href="/api/auth/test">
                     Log in with Replit
@@ -152,7 +154,7 @@ export function ProdigyNavbar() {
             <div className="flex items-center sm:hidden ml-4">
               <button
                 type="button"
-                className="inline-flex items-center justify-center rounded-md p-2 text-text-secondary hover:bg-prodigy-light-purple/10 hover:text-prodigy-purple"
+                className="inline-flex items-center justify-center rounded-full p-2 text-[#666666] hover:bg-[#7209B7]/10 hover:text-[#7209B7]"
                 aria-expanded="false"
                 onClick={toggleMobileMenu}
               >
@@ -170,15 +172,15 @@ export function ProdigyNavbar() {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="sm:hidden bg-white border-b border-border/30">
+        <div className="sm:hidden bg-white border-b border-gray-100">
           <div className="space-y-1 pb-3 pt-2">
             {navigation.map((item) => (
               <Link key={item.name} href={item.href}>
                 <a
-                  className={`block py-2 pl-3 pr-4 text-base font-medium ${
+                  className={`block py-2 pl-5 pr-4 text-base font-medium ${
                     item.current
-                      ? "bg-prodigy-light-purple/10 text-prodigy-purple border-l-4 border-prodigy-purple"
-                      : "text-text-secondary hover:text-prodigy-purple hover:bg-prodigy-light-purple/5"
+                      ? "bg-[#7209B7]/10 text-[#7209B7] border-l-4 border-[#7209B7]"
+                      : "text-[#666666] hover:text-[#7209B7] hover:bg-[#7209B7]/5"
                   }`}
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -188,25 +190,25 @@ export function ProdigyNavbar() {
             ))}
           </div>
           {isAuthenticated && (
-            <div className="border-t border-border/30 pb-3 pt-4">
-              <div className="flex items-center px-4">
+            <div className="border-t border-gray-100 pb-3 pt-4">
+              <div className="flex items-center px-5">
                 <div className="flex-shrink-0">
-                  <Avatar className="h-10 w-10 bg-prodigy-light-purple/20">
+                  <Avatar className="h-10 w-10 border-2 border-[#7209B7]/20">
                     <AvatarImage src={user?.profileImage} />
-                    <AvatarFallback className="bg-prodigy-purple text-white">
+                    <AvatarFallback className="bg-[#7209B7] text-white font-medium">
                       {user?.name ? getInitials(user.name) : user?.username?.substring(0, 2).toUpperCase() || "U"}
                     </AvatarFallback>
                   </Avatar>
                 </div>
                 <div className="ml-3">
-                  <div className="text-base font-medium text-text-primary">{user?.name || user?.username}</div>
-                  <div className="text-sm text-text-secondary">{user?.email}</div>
+                  <div className="text-base font-medium text-[#1A1A1A]">{user?.name || user?.username}</div>
+                  <div className="text-sm text-[#666666]">{user?.email}</div>
                 </div>
               </div>
               <div className="mt-3 space-y-1">
                 <Link href="/profile">
                   <a
-                    className="block px-4 py-2 text-base font-medium text-text-secondary hover:text-prodigy-purple hover:bg-prodigy-light-purple/5"
+                    className="block px-5 py-2 text-base font-medium text-[#666666] hover:text-[#7209B7] hover:bg-[#7209B7]/5"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Profile
@@ -214,7 +216,7 @@ export function ProdigyNavbar() {
                 </Link>
                 <Link href="/calendar">
                   <a
-                    className="block px-4 py-2 text-base font-medium text-text-secondary hover:text-prodigy-purple hover:bg-prodigy-light-purple/5"
+                    className="block px-5 py-2 text-base font-medium text-[#666666] hover:text-[#7209B7] hover:bg-[#7209B7]/5"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Calendar
@@ -222,7 +224,7 @@ export function ProdigyNavbar() {
                 </Link>
                 <Link href="/settings">
                   <a
-                    className="block px-4 py-2 text-base font-medium text-text-secondary hover:text-prodigy-purple hover:bg-prodigy-light-purple/5"
+                    className="block px-5 py-2 text-base font-medium text-[#666666] hover:text-[#7209B7] hover:bg-[#7209B7]/5"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Settings
@@ -230,7 +232,7 @@ export function ProdigyNavbar() {
                 </Link>
                 <a
                   href="/api/auth/logout"
-                  className="block px-4 py-2 text-base font-medium text-red-600 hover:bg-red-50"
+                  className="block px-5 py-2 text-base font-medium text-red-600 hover:bg-red-50"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Logout
