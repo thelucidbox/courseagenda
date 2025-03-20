@@ -139,7 +139,8 @@
   
   /* Decorative elements */
   .floating-shape {
-    @apply absolute pointer-events-none opacity-70 animate-float;
+    @apply absolute pointer-events-none opacity-70;
+    animation: floating 12s ease-in-out infinite;
   }
 
   /* Input styles */
@@ -156,4 +157,19 @@
   .section-spacing {
     @apply py-12 md:py-16 lg:py-24;
   }
+}
+
+/* Manual animations */
+@keyframes floating {
+  0% { transform: translate(0, 0); }
+  20% { transform: translate(5px, -5px); }
+  40% { transform: translate(10px, 5px); }
+  60% { transform: translate(5px, 10px); }
+  80% { transform: translate(-5px, 5px); }
+  100% { transform: translate(0, 0); }
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+  transition: transform 0.3s ease;
 }
