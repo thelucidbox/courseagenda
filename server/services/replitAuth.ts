@@ -84,12 +84,18 @@ export async function setupAuth(app: Express) {
     },
     verify,
   );
-  passport.use('replit', strategy);
+  passport.use(strategy);
 
-  passport.serializeUser((user: Express.User, cb) => cb(null, user));
-  passport.deserializeUser((user: Express.User, cb) => cb(null, user));
+  passport.serializeUser((user: Express.User, cb) => {
+    console.log('Serializing user:', user);
+    cb(null, user);
+  });
+  passport.deserializeUser((user: Express.User, cb) => {
+    console.log('Deserializing user:', user);
+    cb(null, user);
+  });
 
-  app.get("/api/auth/replit", passport.authenticate('replit'));
+  app.get("/api/auth/replit", passport.authenticate(strategy.name));
   
   // Add a simpler login endpoint that redirects to the Replit auth
   app.get("/api/login", (req, res) => {
@@ -98,7 +104,7 @@ export async function setupAuth(app: Express) {
 
   app.get(
     "/api/auth/replit/callback",
-    passport.authenticate('replit', {
+    passport.authenticate(strategy.name, {
       successRedirect: "/home",
       failureRedirect: "/",
     }),

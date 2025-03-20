@@ -125,7 +125,7 @@ export function ProdigyNavbar() {
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                      <a href="/api/logout" className="flex cursor-pointer items-center text-red-600">
+                      <a href="/api/auth/logout" className="flex cursor-pointer items-center text-red-600">
                         <LogOut className="mr-2 h-4 w-4" />
                         <span>Logout</span>
                       </a>
@@ -227,7 +227,7 @@ export function ProdigyNavbar() {
                   </a>
                 </Link>
                 <a
-                  href="/api/logout"
+                  href="/api/auth/logout"
                   className="block px-4 py-2 text-base font-medium text-red-600 hover:bg-red-50"
                   onClick={() => setMobileMenuOpen(false)}
                 >
