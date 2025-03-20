@@ -103,7 +103,7 @@ export async function setupAuth(app: Express) {
     console.log("Test login requested");
     
     // Set the user directly in the session
-    req.session.passport = { user: DEV_USER.id };
+    (req.session as any).passport = { user: DEV_USER.id };
     
     // Force session save
     req.session.save((err) => {

@@ -13,8 +13,8 @@ const Landing = () => {
       {/* Navbar for landing page */}
       <ProdigyNavbar />
       
-      {/* Hero Section */}
-      <section className="section-spacing relative overflow-hidden">
+      {/* Hero Section - Matching your design */}
+      <section className="section-spacing relative overflow-hidden bg-gradient-to-br from-[#F9F5FF] to-[#F8F9FC]">
         <div className="container mx-auto max-w-6xl px-4 relative z-10">
           <div className="flex flex-col md:flex-row gap-12 items-center">
             <div className="md:w-1/2 space-y-6 relative">
@@ -23,30 +23,33 @@ const Landing = () => {
                 <span>New: AI-powered study planning</span>
               </div>
               
-              <h1 className="font-extrabold tracking-tight">
-                <GradientText className="leading-tight">
+              <h1 className="font-extrabold text-4xl md:text-5xl tracking-tight">
+                <span className="text-prodigy-purple">
                   Transform Your Syllabus
-                </GradientText> Into A Personalized Study Plan
+                </span> 
+                <span className="text-black">Into A</span>
+                <br/>
+                <span className="text-black">Personalized Study Plan</span>
               </h1>
               
-              <p className="text-xl text-text-body">
+              <p className="text-xl text-gray-700">
                 CourseAgenda helps students automatically organize their academic schedules, turning syllabi into structured study plans with calendar integration.
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 {isAuthenticated ? (
                   <Link href="/upload">
-                    <a className="btn-primary">
+                    <a className="bg-prodigy-purple hover:bg-prodigy-purple/90 text-white px-6 py-3 rounded-full font-medium transition-colors">
                       Get Started <ArrowRight className="ml-2 h-4 w-4 inline" />
                     </a>
                   </Link>
                 ) : (
-                  <a href="/api/login" className="btn-primary">
+                  <a href="/api/auth/test" className="bg-prodigy-purple hover:bg-prodigy-purple/90 text-white px-6 py-3 rounded-full font-medium transition-colors">
                     Log in with Replit <ArrowRight className="ml-2 h-4 w-4 inline" />
                   </a>
                 )}
                 <Link href="#features">
-                  <a className="btn-secondary">
+                  <a className="border border-gray-300 hover:border-gray-400 bg-white text-gray-800 px-6 py-3 rounded-full font-medium transition-colors">
                     Learn More
                   </a>
                 </Link>
@@ -55,28 +58,23 @@ const Landing = () => {
             
             <div className="md:w-1/2 relative">
               <div className="rounded-2xl p-1 relative z-10 overflow-hidden">
-                <div className="bg-gradient-to-br from-prodigy-purple/90 to-prodigy-light-purple/90 absolute inset-0 rounded-2xl opacity-20"></div>
-                <div className="bg-white rounded-xl shadow-prodigy-md overflow-hidden relative">
+                <div className="bg-white rounded-xl shadow-lg overflow-hidden relative">
                   <img 
-                    src="https://images.unsplash.com/photo-1606761568499-6d2451b23c66?q=80&w=1074&auto=format&fit=crop" 
-                    alt="Student using CourseAgenda" 
-                    className="w-full h-auto transform hover:scale-105 transition-transform duration-700"
+                    src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=1470&auto=format&fit=crop"
+                    alt="Lecture hall" 
+                    className="w-full h-auto"
                   />
                 </div>
-                
-                <FloatingShape type="star" color="secondary" top="10%" left="5%" />
-                <FloatingShape type="circle" color="primary" top="15%" right="10%" size="sm" />
-                <FloatingShape type="plus" color="accent" bottom="25%" left="8%" size="lg" />
               </div>
               
-              <div className="absolute -bottom-6 -right-6 bg-white rounded-xl shadow-prodigy-md p-4 border border-border/40">
+              <div className="absolute -bottom-6 -right-6 bg-white rounded-xl shadow-lg p-4 border border-gray-100">
                 <div className="flex items-center gap-3">
                   <div className="bg-prodigy-light-purple/20 rounded-full p-2">
                     <Clock className="h-5 w-5 text-prodigy-purple" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-text-primary">Save time</p>
-                    <p className="text-xs text-text-secondary">Upload once, organize instantly</p>
+                    <p className="text-sm font-medium text-gray-800">Save time</p>
+                    <p className="text-xs text-gray-600">Upload once, organize instantly</p>
                   </div>
                 </div>
               </div>
@@ -85,8 +83,8 @@ const Landing = () => {
         </div>
         
         {/* Background decorations */}
-        <div className="absolute top-0 right-0 opacity-10 w-1/3 h-1/3 bg-prodigy-yellow rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 opacity-10 w-1/2 h-1/2 bg-prodigy-purple rounded-full blur-3xl"></div>
+        <div className="absolute top-0 right-0 opacity-10 w-1/3 h-1/3 bg-yellow-400 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 opacity-10 w-1/2 h-1/2 bg-purple-700 rounded-full blur-3xl"></div>
       </section>
       
       <SectionDivider />
@@ -251,7 +249,7 @@ const Landing = () => {
                   <a className="btn-primary text-center">Get Started</a>
                 </Link>
               ) : (
-                <a href="/api/login" className="btn-primary text-center">Log in with Replit</a>
+                <a href="/api/auth/test" className="btn-primary text-center">Log in with Replit</a>
               )}
             </div>
             
@@ -331,7 +329,7 @@ const Landing = () => {
                   </a>
                 </Link>
               ) : (
-                <a href="/api/login" className="bg-white text-prodigy-purple rounded-3xl px-8 py-4 font-semibold hover:bg-gray-100 transition-colors duration-300">
+                <a href="/api/auth/test" className="bg-white text-prodigy-purple rounded-3xl px-8 py-4 font-semibold hover:bg-gray-100 transition-colors duration-300">
                   Log in with Replit <ArrowRight className="ml-2 h-4 w-4 inline" />
                 </a>
               )}
