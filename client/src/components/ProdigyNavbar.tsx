@@ -3,8 +3,8 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { FloatingShape } from "@/components/ui/floating-shape";
-import { Menu, X, BookOpen, User, Calendar, LogOut, Settings } from "lucide-react";
+import { FloatingShape } from "@/components/ui/floating-shapes";
+import { Menu, X, User, Calendar, LogOut, Settings } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,8 +38,10 @@ export function ProdigyNavbar() {
 
   return (
     <div className="bg-white border-b border-gray-100 relative">
-      <FloatingShape type="circle" color="purple" top="10px" left="5%" size="sm" />
-      <FloatingShape type="star" color="accent" bottom="10px" right="10%" size="sm" />
+      {/* Decorative floating shapes */}
+      <FloatingShape type="circle" color="purple" top="15px" left="5%" size="sm" />
+      <FloatingShape type="star" color="accent" bottom="15px" right="12%" size="sm" />
+      <FloatingShape type="plus" color="purple" top="50%" right="25%" size="sm" opacity={0.4} />
       
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="flex h-16 justify-between items-center">
@@ -47,15 +49,15 @@ export function ProdigyNavbar() {
           <div className="flex">
             <div className="flex flex-shrink-0 items-center">
               <Link href="/">
-                <div className="flex items-center cursor-pointer">
-                  <div className="w-10 h-10 flex items-center justify-center mr-2 bg-[#7209B7] rounded-xl shadow-sm">
+                <div className="flex items-center cursor-pointer group">
+                  <div className="w-10 h-10 flex items-center justify-center mr-3 bg-[#7209B7] rounded-xl shadow-md transform group-hover:scale-105 transition-transform">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M17 5H7C5.89543 5 5 5.89543 5 7V17C5 18.1046 5.89543 19 7 19H17C18.1046 19 19 18.1046 19 17V7C19 5.89543 18.1046 5 17 5Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       <path d="M5 9H19" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       <path d="M9 5V19" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   </div>
-                  <span className="text-xl font-bold text-[#1A1A1A]">
+                  <span className="text-xl font-bold text-[#1A1A1A] group-hover:text-[#7209B7] transition-colors">
                     CourseAgenda
                   </span>
                 </div>
@@ -63,15 +65,15 @@ export function ProdigyNavbar() {
             </div>
             
             {/* Desktop navigation */}
-            <div className="hidden sm:ml-8 sm:flex sm:space-x-8">
+            <div className="hidden sm:ml-10 sm:flex sm:space-x-8">
               {navigation.map((item) => (
                 <Link key={item.name} href={item.href}>
                   <a
-                    className={`inline-flex items-center px-4 py-1 text-sm font-medium transition-colors ${
-                      item.current
-                        ? "text-[#7209B7] font-semibold"
-                        : "text-[#666666] hover:text-[#7209B7]"
-                    }`}
+                    className={`inline-flex items-center px-4 py-2 text-sm font-medium transition-all rounded-full
+                      ${item.current
+                        ? "text-[#7209B7] font-semibold bg-[#7209B7]/5"
+                        : "text-[#666666] hover:text-[#7209B7] hover:bg-[#7209B7]/5"
+                      }`}
                   >
                     {item.name}
                   </a>
@@ -95,7 +97,7 @@ export function ProdigyNavbar() {
                       </Avatar>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56 rounded-xl border-gray-100 shadow-lg">
+                  <DropdownMenuContent align="end" className="w-56 rounded-xl border-gray-100 shadow-xl">
                     <div className="px-4 py-3">
                       <p className="text-sm font-semibold text-[#1A1A1A] truncate">
                         {user?.name || user?.username}
@@ -141,7 +143,7 @@ export function ProdigyNavbar() {
               <div className="flex items-center space-x-3">
                 <Button 
                   asChild 
-                  className="bg-[#7209B7] hover:bg-[#7209B7]/90 text-white px-6 py-2 rounded-full font-medium"
+                  className="bg-[#7209B7] hover:bg-[#7209B7]/90 text-white px-6 py-2.5 rounded-full font-medium transform hover:scale-105 transition-transform"
                 >
                   <a href="/api/auth/test">
                     Log in with Replit
@@ -177,7 +179,7 @@ export function ProdigyNavbar() {
             {navigation.map((item) => (
               <Link key={item.name} href={item.href}>
                 <a
-                  className={`block py-2 pl-5 pr-4 text-base font-medium ${
+                  className={`block py-2 pl-5 pr-4 text-base font-medium transition-colors ${
                     item.current
                       ? "bg-[#7209B7]/10 text-[#7209B7] border-l-4 border-[#7209B7]"
                       : "text-[#666666] hover:text-[#7209B7] hover:bg-[#7209B7]/5"
