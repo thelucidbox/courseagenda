@@ -141,6 +141,17 @@ export async function setupAuth(app: Express) {
     res.redirect("/api/auth/test");
   });
   
+  // Catch-all for any Replit auth-related routes
+  app.get("/api/auth/replit", (req, res) => {
+    console.log("Replit auth request received, redirecting to test login");
+    res.redirect("/api/auth/test");
+  });
+  
+  app.get("/api/auth/replit/callback", (req, res) => {
+    console.log("Replit auth callback received, redirecting to test login");
+    res.redirect("/api/auth/test");
+  });
+  
   // Logout route
   app.get("/api/auth/logout", (req, res) => {
     console.log("Logout requested, user:", req.user);
