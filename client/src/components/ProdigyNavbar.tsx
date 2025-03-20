@@ -135,9 +135,14 @@ export function ProdigyNavbar() {
               </div>
             ) : (
               <div className="flex items-center space-x-3">
-                <a href="/api/login" className="btn-primary inline-flex">
-                  Log in with Replit
-                </a>
+                <Button 
+                  asChild 
+                  className="bg-prodigy-purple hover:bg-prodigy-purple/90 text-white"
+                >
+                  <a href="/api/auth/replit">
+                    Log in with Replit
+                  </a>
+                </Button>
               </div>
             )}
             
