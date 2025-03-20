@@ -139,7 +139,7 @@ export function ProdigyNavbar() {
                   asChild 
                   className="bg-prodigy-purple hover:bg-prodigy-purple/90 text-white"
                 >
-                  <a href="/api/auth/replit">
+                  <a href="/api/auth/test">
                     Log in with Replit
                   </a>
                 </Button>
