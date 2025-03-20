@@ -12,7 +12,7 @@ import CreateStudyPlan from "@/pages/CreateStudyPlan";
 import Courses from "@/pages/Courses";
 import CalendarIntegration from "@/pages/CalendarIntegration";
 import Profile from "@/pages/Profile";
-import Landing from "@/pages/Landing";
+import NewLanding from "@/pages/NewLanding";
 import Admin from "@/pages/Admin";
 // Import directly using relative path instead of alias to fix the module resolution
 import CalendarPermissions from "./pages/CalendarPermissions";
@@ -51,18 +51,18 @@ function Router() {
   
   return (
     <Switch>
-      <Route path="/" component={isAuthenticated ? Dashboard : Landing} />
-      <Route path="/dashboard" component={isAuthenticated ? Dashboard : Landing} />
-      <Route path="/upload" component={isAuthenticated ? UploadSyllabus : Landing} />
-      <Route path="/calendar-permissions/:id?" component={isAuthenticated ? CalendarPermissions : Landing} />
-      <Route path="/extract/:id" component={isAuthenticated ? ExtractInfo : Landing} />
-      <Route path="/create-plan/:id" component={isAuthenticated ? CreateStudyPlan : Landing} />
-      <Route path="/courses" component={isAuthenticated ? Courses : Landing} />
-      <Route path="/calendar-integration/:id" component={isAuthenticated ? CalendarIntegration : Landing} />
-      <Route path="/calendar/success" component={isAuthenticated ? CalendarSuccess : Landing} />
-      <Route path="/calendar/error" component={isAuthenticated ? CalendarError : Landing} />
-      <Route path="/profile" component={isAuthenticated ? Profile : Landing} />
-      <Route path="/admin" component={isAuthenticated ? Admin : Landing} />
+      <Route path="/" component={isAuthenticated ? Dashboard : NewLanding} />
+      <Route path="/dashboard" component={isAuthenticated ? Dashboard : NewLanding} />
+      <Route path="/upload" component={isAuthenticated ? UploadSyllabus : NewLanding} />
+      <Route path="/calendar-permissions/:id?" component={isAuthenticated ? CalendarPermissions : NewLanding} />
+      <Route path="/extract/:id" component={isAuthenticated ? ExtractInfo : NewLanding} />
+      <Route path="/create-plan/:id" component={isAuthenticated ? CreateStudyPlan : NewLanding} />
+      <Route path="/courses" component={isAuthenticated ? Courses : NewLanding} />
+      <Route path="/calendar-integration/:id" component={isAuthenticated ? CalendarIntegration : NewLanding} />
+      <Route path="/calendar/success" component={isAuthenticated ? CalendarSuccess : NewLanding} />
+      <Route path="/calendar/error" component={isAuthenticated ? CalendarError : NewLanding} />
+      <Route path="/profile" component={isAuthenticated ? Profile : NewLanding} />
+      <Route path="/admin" component={isAuthenticated ? Admin : NewLanding} />
       <Route component={NotFound} />
     </Switch>
   );

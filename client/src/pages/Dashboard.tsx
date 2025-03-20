@@ -19,7 +19,7 @@ export default function Dashboard() {
   
   useEffect(() => {
     if (syllabiData) {
-      setSyllabi(syllabiData);
+      setSyllabi(syllabiData || []);
     }
   }, [syllabiData]);
 
