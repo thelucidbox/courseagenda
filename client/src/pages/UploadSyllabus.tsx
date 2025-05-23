@@ -1,13 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, SVGProps } from 'react'; // Added SVGProps for CheckIcon
 import { useLocation } from 'wouter';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useMobile } from '@/hooks/use-mobile';
-import FileUpload from '@/components/ui/file-upload';
-import ProgressSteps from '@/components/ui/progress-steps';
-import PDFViewer from '@/components/ui/pdf-viewer';
-import DirectTextExtractor from '@/components/ui/direct-text-extractor';
+import FileUpload from '@/components/ui/file-upload'; // Assume this component is/will be styled consistently
+import ProgressSteps from '@/components/ui/progress-steps'; // Assume this component is/will be styled consistently
+import PDFViewer from '@/components/ui/pdf-viewer'; // Assume this component is/will be styled consistently
+import DirectTextExtractor from '@/components/ui/direct-text-extractor'; // Assume this component is/will be styled consistently
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card'; // Import Card
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Loader2, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
 import { type Syllabus } from '@shared/schema';
@@ -186,17 +187,18 @@ const UploadSyllabus = () => {
 
   return (
     <div>
-      <ProgressSteps steps={steps} currentStep={1} />
+      <ProgressSteps steps={steps} currentStep={1} /> {/* Assuming ProgressSteps is styled according to the guide */}
       
-      <div className="flex flex-col md:flex-row gap-6">
+      <div className="flex flex-col md:flex-row gap-6 section-spacing"> {/* Added section-spacing */}
         <div className="md:w-2/3 space-y-6">
-          <div className="bg-card rounded-lg shadow-sm p-6">
-            <h3 className="text-lg font-semibold mb-4">Upload Your Syllabus</h3>
+          {/* Changed div to Card component */}
+          <Card className="p-6"> 
+            <h3 className="text-lg font-semibold mb-4 text-text-primary">Upload Your Syllabus</h3> {/* Use theme text color */}
             
-            <Alert className="mb-4">
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
+            <Alert className="mb-4"> {/* Alert component should be consistent from its own definition */}
+              <CheckCircle2 className="h-4 w-4 text-green-500" /> {/* Standard success color is fine */}
               <AlertTitle>Upload your PDF and I'll take care of the rest</AlertTitle>
-              <AlertDescription className="text-foreground/80">
+              <AlertDescription className="text-text-secondary"> {/* Use theme text color */}
                 Your syllabus will be analyzed to extract key course information, 
                 important dates, assignments, and exams automatically.
               </AlertDescription>
@@ -224,35 +226,38 @@ const UploadSyllabus = () => {
                 />
                 
                 {pdfProcessingStatus === 'processing' && (
-                  <div className="absolute top-4 right-4 bg-card/90 p-3 rounded-md shadow-md">
+                  // Updated popup with theme styles
+                  <div className="absolute top-4 right-4 bg-card/90 p-3 rounded-xl shadow-prodigy-md border border-border">
                     <div className="flex items-center">
-                      <div className="h-4 w-4 mr-2 rounded-full border-2 border-primary border-t-transparent animate-spin"></div>
-                      <span className="text-xs font-medium">Processing PDF...</span>
+                      <div className="h-4 w-4 mr-2 rounded-full border-2 border-prodigy-purple border-t-transparent animate-spin"></div> {/* Use theme color */}
+                      <span className="text-xs font-medium text-text-secondary">Processing PDF...</span> {/* Use theme text color */}
                     </div>
                   </div>
                 )}
                 
                 {pdfProcessingStatus === 'failed' && (
                   <div className="mt-4">
-                    <Alert variant="destructive" className="mb-4">
+                    <Alert variant="destructive" className="mb-4"> {/* Destructive Alert should be consistent */}
                       <AlertCircle className="h-4 w-4" />
                       <AlertTitle>PDF Processing Failed</AlertTitle>
-                      <AlertDescription className="text-destructive-foreground">
+                      <AlertDescription> {/* Default destructive text color from Alert variant */}
                         We couldn't automatically process this PDF. Try another file or try on a desktop device for manual entry.
                       </AlertDescription>
                     </Alert>
                     
                     <div className="flex justify-center gap-2 flex-wrap">
+                      {/* Buttons use standardized variants */}
                       <Button 
                         onClick={handleSwitchToManualInput}
-                        className="hidden md:inline-flex" // Hide on mobile, show on desktop
+                        variant="default" // Or another suitable variant like outline
+                        className="hidden md:inline-flex" 
                       >
                         Enter Information Manually
                       </Button>
                       <Button 
                         onClick={() => setSelectedFile(null)}
-                        variant={isMobile ? "default" : "outline"}
-                        className="w-full md:w-auto" // Full width on mobile
+                        variant={isMobile ? "default" : "outline"} // Responsive variant choice
+                        className="w-full md:w-auto"
                       >
                         Try Another File
                       </Button>
@@ -262,11 +267,13 @@ const UploadSyllabus = () => {
                 
                 {pdfProcessingStatus !== 'failed' && (
                   <div className="mt-6 flex justify-center">
+                    {/* Standardized Button with specific padding and shadow for CTA */}
                     <Button 
                       onClick={handleContinue}
                       disabled={uploadMutation.isPending}
                       size="lg"
-                      className="w-full max-w-md bg-primary shadow-lg text-primary-foreground font-medium py-6"
+                      variant="default" // Explicitly use default variant which is themed
+                      className="w-full max-w-md py-6 shadow-prodigy-lg" // Custom padding and themed shadow
                     >
                       {uploadMutation.isPending ? (
                         <>
@@ -289,9 +296,9 @@ const UploadSyllabus = () => {
               <div className="mt-4 flex justify-between items-center">
                 <Button 
                   onClick={handleSwitchToManualInput}
-                  variant="ghost"
+                  variant="ghost" // Ghost is subtle
                   size="sm"
-                  className="hidden md:flex" // Hide on mobile, show on larger screens
+                  className="hidden md:flex" 
                 >
                   Enter information manually instead
                 </Button>
@@ -300,99 +307,74 @@ const UploadSyllabus = () => {
                 
                 <Button 
                   onClick={() => setSelectedFile(null)} 
-                  variant="outline" 
+                  variant="outline" // Outline is standard for cancel/secondary actions
                 >
                   Cancel
                 </Button>
               </div>
             )}
-          </div>
+          </Card>
 
-          <div className="bg-card rounded-lg shadow-sm p-6">
-            <h3 className="text-lg font-semibold mb-4">Recent Uploads</h3>
+          {/* Changed div to Card component */}
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4 text-text-primary">Recent Uploads</h3>
             
             <div className="space-y-2" id="recent-uploads">
-              {/* Will be populated by React Query */}
+              {/* Content will be populated by React Query, assuming it uses themed components */}
             </div>
-          </div>
+          </Card>
         </div>
         
         <div className="md:w-1/3">
-          <div className="bg-card rounded-lg shadow-sm p-6">
-            <h3 className="text-lg font-semibold mb-4">How It Works</h3>
+          {/* Changed div to Card component */}
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4 text-text-primary">How It Works</h3>
             
             <div className="space-y-4">
-              <div className="flex space-x-3">
-                <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0 text-xs">
-                  1
+              {[
+                { title: "Upload your syllabus", description: "Upload your course syllabus in PDF format." },
+                { title: "Automatic analysis and processing", description: "Your PDF is automatically analyzed to extract course information, deadlines, and assignments." },
+                { title: "Generate your study plan", description: "We'll create a personalized study plan with recommended study sessions based on your course schedule." },
+                { title: "Sync with your calendar", description: "Add your study plan directly to Google Calendar, Apple Calendar, or other supported calendar services." }
+              ].map((step, index) => (
+                <div className="flex space-x-3" key={index}>
+                  <div className="w-6 h-6 rounded-full bg-prodigy-purple text-primary-foreground flex items-center justify-center flex-shrink-0 text-xs">
+                    {index + 1}
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-sm text-text-primary">{step.title}</h4>
+                    <p className="text-sm text-muted-foreground">{step.description}</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="font-medium text-sm">Upload your syllabus</h4>
-                  <p className="text-sm text-muted-foreground">Upload your course syllabus in PDF format.</p>
-                </div>
-              </div>
-              
-              <div className="flex space-x-3">
-                <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0 text-xs">
-                  2
-                </div>
-                <div>
-                  <h4 className="font-medium text-sm">Automatic analysis and processing</h4>
-                  <p className="text-sm text-muted-foreground">Your PDF is automatically analyzed to extract course information, deadlines, and assignments.</p>
-                </div>
-              </div>
-              
-              <div className="flex space-x-3">
-                <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0 text-xs">
-                  3
-                </div>
-                <div>
-                  <h4 className="font-medium text-sm">Generate your study plan</h4>
-                  <p className="text-sm text-muted-foreground">We'll create a personalized study plan with recommended study sessions based on your course schedule.</p>
-                </div>
-              </div>
-              
-              <div className="flex space-x-3">
-                <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0 text-xs">
-                  4
-                </div>
-                <div>
-                  <h4 className="font-medium text-sm">Sync with your calendar</h4>
-                  <p className="text-sm text-muted-foreground">Add your study plan directly to Google Calendar, Apple Calendar, or other supported calendar services.</p>
-                </div>
-              </div>
+              ))}
             </div>
             
-            <div className="mt-6 p-4 bg-muted/50 rounded-md border border-muted">
-              <h4 className="font-medium text-sm mb-2">Tips for Best Results</h4>
+            {/* Tips box with themed styles */}
+            <div className="mt-6 p-4 bg-muted/50 rounded-xl border border-border"> {/* Changed to rounded-xl and border-border */}
+              <h4 className="font-medium text-sm mb-2 text-text-primary">Tips for Best Results</h4>
               <ul className="text-sm space-y-1">
-                <li className="flex items-start space-x-2">
-                  <CheckIcon className="text-primary mt-0.5 h-4 w-4" />
-                  <span>Ensure your PDF includes clearly stated dates and deadlines</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <CheckIcon className="text-primary mt-0.5 h-4 w-4" />
-                  <span>Complex formats including tables and schedules are supported</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <CheckIcon className="text-primary mt-0.5 h-4 w-4" />
-                  <span>Both digital and scanned syllabi are supported</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <CheckIcon className="text-primary mt-0.5 h-4 w-4" />
-                  <span>You can always edit extracted information later</span>
-                </li>
+                {[
+                  "Ensure your PDF includes clearly stated dates and deadlines",
+                  "Complex formats including tables and schedules are supported",
+                  "Both digital and scanned syllabi are supported",
+                  "You can always edit extracted information later"
+                ].map((tip, index) => (
+                  <li className="flex items-start space-x-2" key={index}>
+                    <CheckIcon className="text-prodigy-purple mt-0.5 h-4 w-4" /> {/* Use theme color for icon */}
+                    <span className="text-text-secondary">{tip}</span> {/* Use theme text color */}
+                  </li>
+                ))}
               </ul>
             </div>
-          </div>
+          </Card>
         </div>
       </div>
     </div>
   );
 };
 
-// Helper icon component
-const CheckIcon = (props: React.SVGProps<SVGSVGElement>) => (
+// Helper icon component - already using stroke="currentColor" which is good
+const CheckIcon = (props: SVGProps<SVGSVGElement>) => ( // Added SVGProps type
   <svg
     {...props}
     xmlns="http://www.w3.org/2000/svg"

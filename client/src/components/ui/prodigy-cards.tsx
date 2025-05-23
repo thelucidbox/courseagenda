@@ -1,26 +1,28 @@
 import React from "react";
 import { cn } from "@/lib/utils";
-import { FloatingShape } from "./decorative-elements";
+import { FloatingShape } from "./decorative-elements"; // Assuming FloatingShape is already compliant or out of scope for this refactor
 import { LucideIcon } from "lucide-react";
+import { Card } from "@/components/ui/card"; // Import the standardized Card
 
-interface ProdigyCardProps extends React.HTMLAttributes<HTMLDivElement> {
+interface ProdigyCardProps extends React.HTMLAttributes<HTMLDivElement> { 
   className?: string;
   children: React.ReactNode;
-  hover?: boolean;
+  // hoverEffect prop removed as base Card now handles hover effects by default.
+  // If a card needs to specifically disable hover, a new prop like `disableBaseHover` could be introduced.
 }
 
-export function ProdigyCard({ className, children, hover = true, ...props }: ProdigyCardProps) {
+// Refactored ProdigyCard to use the standardized Card component
+export function ProdigyCard({ className, children, ...props }: ProdigyCardProps) {
   return (
-    <div
+    <Card // Uses the standardized Card component which has hover effects
       className={cn(
-        "prodigy-card p-6",
-        hover && "hover:scale-[1.02] transition-all duration-300",
+        "p-6", // Default padding for this specific card type
         className
       )}
       {...props}
     >
       {children}
-    </div>
+    </Card>
   );
 }
 
@@ -32,11 +34,15 @@ interface FeatureCardProps extends React.HTMLAttributes<HTMLDivElement> {
   number?: number;
 }
 
+// FeatureCard retains its specific styling class but could be built upon Card if desired for base attributes
 export function FeatureCard({ className, title, description, icon: Icon, number, ...props }: FeatureCardProps) {
   return (
+    // Using a div with feature-card class for now, as its base style is very different from default Card.
+    // Alternatively, <Card className="feature-card ...overrides..."> could be used.
     <div
       className={cn(
-        "feature-card hover:scale-[1.02] transition-all duration-300",
+        "feature-card p-6", // p-6 is from original feature-card css, ensure it's here or in the class
+        "hover:scale-[1.02] transition-transform duration-300", // Custom hover effect
         className
       )}
       {...props}
@@ -59,14 +65,14 @@ export function FeatureCard({ className, title, description, icon: Icon, number,
             </div>
           )}
           
-          <h3 className="text-white font-bold text-xl tracking-wide">{title}</h3>
+          <h3 className="text-white font-bold text-xl tracking-wide">{title}</h3> {/* text-white is part of feature-card style */}
         </div>
-        <p className="text-white/90 ml-0 lg:ml-16">{description}</p>
+        <p className="text-white/90 ml-0 lg:ml-16">{description}</p> {/* text-white/90 is part of feature-card style */}
       </div>
       
-      {/* Additional decorative elements */}
-      <FloatingShape type="circle" color="secondary" top="70%" left="10%" size="sm" />
-      <FloatingShape type="plus" color="accent" bottom="10%" right="10%" size="sm" />
+      {/* Additional decorative elements - using theme color names */}
+      <FloatingShape type="circle" color="prodigy-yellow" top="70%" left="10%" size="sm" />
+      <FloatingShape type="plus" color="prodigy-light-blue" bottom="10%" right="10%" size="sm" />
     </div>
   );
 }
@@ -79,11 +85,13 @@ interface TestimonialCardProps extends React.HTMLAttributes<HTMLDivElement> {
   rating?: number;
 }
 
+// Refactored TestimonialCard to use the standardized Card component
 export function TestimonialCard({ className, quote, author, role, avatar, rating, ...props }: TestimonialCardProps) {
   return (
-    <div
+    <Card // Uses the standardized Card component which has hover effects
       className={cn(
-        "testimonial-card hover:scale-[1.02] transition-all duration-300",
+        "p-6", // testimonial-card in CSS already includes p-6
+        // Removed redundant hover:scale, base Card handles it.
         className
       )}
       {...props}
@@ -94,7 +102,7 @@ export function TestimonialCard({ className, quote, author, role, avatar, rating
           {[...Array(5)].map((_, i) => (
             <svg 
               key={i} 
-              className={`w-5 h-5 ${i < rating ? "text-prodigy-yellow" : "text-gray-200"}`} 
+              className={`w-5 h-5 ${i < rating ? "text-prodigy-yellow" : "text-muted-foreground/30"}`} // Use theme color for inactive stars
               fill="currentColor" 
               viewBox="0 0 20 20"
             >
@@ -111,7 +119,7 @@ export function TestimonialCard({ className, quote, author, role, avatar, rating
       <div className="flex items-center">
         {avatar && (
           <div className="mr-4">
-            <div className="w-10 h-10 rounded-full overflow-hidden">
+            <div className="w-10 h-10 rounded-full overflow-hidden"> {/* Ensure consistent rounding if needed */}
               <img src={avatar} alt={author} className="w-full h-full object-cover" />
             </div>
           </div>
@@ -122,7 +130,7 @@ export function TestimonialCard({ className, quote, author, role, avatar, rating
           {role && <p className="text-sm text-text-secondary">{role}</p>}
         </div>
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -135,18 +143,21 @@ interface CourseCardProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
 }
 
+// Refactored CourseCard to use the standardized Card component
 export function CourseCard({ className, title, description, image, progress, dueDate, ...props }: CourseCardProps) {
   return (
-    <div
+    <Card // Uses the standardized Card component which has hover effects
       className={cn(
-        "prodigy-card hover:scale-[1.02] transition-all duration-300 flex flex-col",
+        "p-6 flex flex-col", // Default padding and flex layout for this card type
+        // Removed redundant hover:scale, base Card handles it.
         className
       )}
       {...props}
     >
       {/* Course image if provided */}
       {image && (
-        <div className="h-40 rounded-t-xl overflow-hidden -mx-6 -mt-6 mb-4">
+        // Adjusting negative margins for image to work with padding on Card
+        <div className="h-40 rounded-t-xl overflow-hidden -mx-6 -mt-6 mb-6"> 
           <img src={image} alt={title} className="w-full h-full object-cover" />
         </div>
       )}
@@ -159,12 +170,12 @@ export function CourseCard({ className, title, description, image, progress, due
       
       {/* Progress bar if provided */}
       {progress !== undefined && (
-        <div className="mt-auto">
+        <div className="mt-auto"> {/* Ensures progress bar is at the bottom for flex-col */}
           <div className="flex justify-between items-center mb-1.5">
             <span className="text-xs text-text-secondary">Progress</span>
             <span className="text-xs font-medium text-prodigy-purple">{progress}%</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className="w-full bg-muted rounded-full h-2"> {/* Use bg-muted for progress background */}
             <div 
               className="bg-prodigy-purple h-2 rounded-full" 
               style={{ width: `${progress}%` }}
@@ -175,14 +186,14 @@ export function CourseCard({ className, title, description, image, progress, due
       
       {/* Due date if provided */}
       {dueDate && (
-        <div className="mt-4 pt-4 border-t border-gray-100 flex items-center">
+        <div className="mt-4 pt-4 border-t border-border flex items-center"> {/* Use border-border */}
           <svg className="w-4 h-4 text-prodigy-purple mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
           <span className="text-xs text-text-secondary">Due: {dueDate}</span>
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 
@@ -194,22 +205,24 @@ interface StatCardProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
 }
 
+// Refactored StatCard to use the standardized Card component
 export function StatCard({ className, title, value, icon: Icon, trend, ...props }: StatCardProps) {
   return (
-    <div
+    <Card // Uses the standardized Card component
       className={cn(
-        "prodigy-card p-5",
+        "p-5", // Specific padding for StatCard
+        // Note: hover:scale effect not specified for StatCard in original, so not added here. Can be added via props if needed.
         className
       )}
       {...props}
     >
-      <div className="flex justify-between">
+      <div className="flex justify-between items-center"> {/* Added items-center for better alignment if icon and text have different heights */}
         <div>
           <p className="text-text-secondary text-sm mb-1">{title}</p>
           <p className="text-text-primary text-2xl font-bold">{value}</p>
           
           {trend !== undefined && (
-            <div className={`flex items-center mt-2 ${trend >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+            <div className={`flex items-center mt-2 ${trend >= 0 ? 'text-green-500' : 'text-red-500'}`}> {/* Standard trend colors are fine */}
               <svg 
                 className="w-4 h-4 mr-1" 
                 fill="none" 
@@ -229,11 +242,11 @@ export function StatCard({ className, title, value, icon: Icon, trend, ...props 
         </div>
         
         {Icon && (
-          <div className="bg-prodigy-light-blue rounded-lg p-3 text-prodigy-purple">
+          <div className="bg-prodigy-light-blue rounded-lg p-3 text-prodigy-purple"> {/* Consistent styling */}
             <Icon className="h-6 w-6" />
           </div>
         )}
       </div>
-    </div>
+    </Card>
   );
 }

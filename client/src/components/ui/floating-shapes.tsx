@@ -28,7 +28,7 @@ export const FloatingShape: React.FC<FloatingShapeProps> = ({
   left,
   right,
   rotate = '0deg',
-  opacity = 1,
+  opacity = 0.7, // Default opacity to 0.7 like in floating-shape CSS class
   zIndex = 0,
   animate = true,
   className = '',
@@ -41,11 +41,14 @@ export const FloatingShape: React.FC<FloatingShapeProps> = ({
     xl: 'w-32 h-32',
   };
 
-  const colorMap = {
-    purple: 'text-[#7209B7]',
-    accent: 'text-[#FFB627]',
-    light: 'text-[#e9e4ff]',
+  const colorMap: Record<ShapeColor, string> = { // Explicitly type colorMap
+    purple: 'text-prodigy-purple', // Use Tailwind theme color class
+    accent: 'text-prodigy-yellow', // Use Tailwind theme color class (assuming accent means yellow here)
+    light: 'text-prodigy-light-blue', // Example: if 'light' means a themeable light blue
   };
+
+  // Fallback for 'light' if it's not in the theme, or adjust as needed
+  // if (!colorMap[color] && color === 'light') colorMap.light = 'text-gray-200'; // Example fallback
 
   const getShapeSvg = () => {
     switch (type) {
@@ -115,7 +118,7 @@ export const FloatingShape: React.FC<FloatingShapeProps> = ({
 
   return (
     <div
-      className={`absolute ${sizeMap[size]} ${colorMap[color]} ${animationClass} ${className}`}
+      className={`absolute pointer-events-none ${sizeMap[size]} ${colorMap[color] || 'text-prodigy-purple'} ${animationClass} ${className}`} // Added pointer-events-none, fallback color
       style={style}
     >
       {getShapeSvg()}
@@ -123,11 +126,15 @@ export const FloatingShape: React.FC<FloatingShapeProps> = ({
   );
 };
 
+// DecorativeShapes component uses FloatingShape, so it will benefit from these changes.
+// Its own opacity overrides will still apply.
 export const DecorativeShapes: React.FC<{ variant?: 'light' | 'dark' }> = ({ variant = 'light' }) => {
+  // Ensuring colors passed here are valid ShapeColor types defined above
+  // The actual color values will be resolved by the updated colorMap in FloatingShape
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
       <FloatingShape type="circle" color="purple" top="5%" left="8%" size="md" opacity={0.6} />
-      <FloatingShape type="donut" color="accent" top="10%" right="15%" size="sm" />
+      <FloatingShape type="donut" color="accent" top="10%" right="15%" size="sm" /> 
       <FloatingShape type="star" color="purple" bottom="15%" right="10%" size="sm" />
       <FloatingShape type="plus" color="accent" bottom="25%" left="15%" size="sm" opacity={0.7} />
       <FloatingShape type="triangle" color="purple" top="40%" right="5%" size="sm" opacity={0.4} rotate="45deg" />

@@ -2,6 +2,7 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+// Base Card component updated to match prodigy-card styles
 const Card = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -9,13 +10,21 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-lg border bg-card text-card-foreground shadow-sm",
+      "rounded-xl bg-card text-card-foreground shadow-prodigy-sm", // Use rounded-xl (equivalent to rounded-lg if --radius is 1rem), shadow-prodigy-sm
+      "border border-border/40", // Explicitly set border with opacity
+      "hover:shadow-prodigy-md hover:scale-[1.02] transition-all duration-300", // Added hover:scale and changed transition-shadow to transition-all
+      "overflow-hidden", // Overflow hidden
       className
     )}
     {...props}
   />
 ))
 Card.displayName = "Card"
+
+// CardHeader, CardTitle, CardDescription, CardContent, CardFooter remain unchanged
+// as their existing styles (padding, typography) are generally compatible and don't
+// directly conflict with the prodigy-card shell.
+// Specific applications might require adjustments but the base components are fine.
 
 const CardHeader = React.forwardRef<
   HTMLDivElement,
